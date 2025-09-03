@@ -135,7 +135,7 @@
                 <!-- Tab Content -->
                 <main id="tab-content">
                     <!-- AI Daily Meal Planner -->
-                    <div id="meal-planner-content" class="hidden space-y-6">
+                    <div id="meal-planner-content" class="space-y-6">
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             <input type="number" id="family-size" class="w-full p-2 border border-purple-200 rounded-lg" placeholder="Family Size (e.g., 4)">
                             <select id="diet-type" class="w-full p-2 border border-purple-200 rounded-lg">
@@ -319,24 +319,16 @@
         const upgradeButton = document.getElementById('upgrade-button');
 
         function switchTab(activeTabId) {
-            // Update button styles
             tabsContainer.querySelectorAll('button').forEach(button => {
-                if (button.dataset.tab === activeTabId) {
-                    button.classList.add('tab-active', 'text-white');
-                    button.classList.remove('text-purple-600');
-                } else {
-                    button.classList.remove('tab-active', 'text-white');
-                    button.classList.add('text-purple-600');
-                }
+                const isButtonActive = button.dataset.tab === activeTabId;
+                button.classList.toggle('tab-active', isButtonActive);
+                button.classList.toggle('text-white', isButtonActive);
+                button.classList.toggle('text-purple-600', !isButtonActive);
             });
-
-            // Update content visibility
             mainContentContainer.querySelectorAll(':scope > div').forEach(contentPanel => {
-                if (contentPanel.id === `${activeTabId}-content`) {
-                    contentPanel.classList.remove('hidden');
-                } else {
-                    contentPanel.classList.add('hidden');
-                }
+                const isPanelActive = contentPanel.id === `${activeTabId}-content`;
+                // Use inline styles for more reliable show/hide with flexbox
+                contentPanel.style.display = isPanelActive ? '' : 'none';
             });
         }
 
@@ -346,16 +338,14 @@
                     switchTab(event.currentTarget.dataset.tab);
                 });
             });
-            // Set initial state
-            switchTab('meal-planner');
+            switchTab('meal-planner'); // Set initial state
         }
-
-        initializeTabs(); // Run the setup
+        
+        initializeTabs();
 
         upgradeButton.onclick = () => upgradeModal.style.display = "block";
         closeModal.onclick = () => upgradeModal.style.display = "none";
         window.onclick = e => { if (e.target == upgradeModal) upgradeModal.style.display = "none"; }
-
 
         // --- Core Application Logic ---
         document.getElementById('generate-meal-plan').addEventListener('click', () => handleGeneration('meal'));
@@ -364,7 +354,7 @@
         document.getElementById('guest-menu').addEventListener('click', () => handleGeneration('guest-menu'));
 
         function handleGeneration(type) {
-             if (usageCount >= FREE_LIMIT) {
+            if (usageCount >= FREE_LIMIT) {
                 upgradeModal.style.display = 'block';
                 return;
             }
@@ -452,7 +442,13 @@
                     body: JSON.stringify(paymentDetails),
                 });
 
-                if (!response.ok) throw new Error(`Hash generation failed: ${response.statusText}`);
+                // **IMPROVED ERROR HANDLING**
+                // This will show us the specific error from the server.
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Server responded with ${response.status}: ${errorText}`);
+                }
+
                 const { hash, key } = await response.json();
 
                 const paymentData = { ...paymentDetails, key, hash, ...payuConfig, phone: '9999999999' };
@@ -466,7 +462,8 @@
 
             } catch (error) {
                 console.error("Payment initiation failed:", error);
-                alert("Could not start payment. Please try again.");
+                // The alert will now be much more informative.
+                alert(`Could not start payment.\n\nDetails: ${error.message}`);
                 buttonElement.disabled = false;
                 buttonElement.textContent = originalButtonText;
             }
@@ -496,4 +493,3 @@
     </script>
 </body>
 </html>
-
