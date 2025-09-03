@@ -36,6 +36,8 @@
         .btn-primary:disabled {
             opacity: 0.7;
             cursor: not-allowed;
+            background-image: none;
+            background-color: #a78bfa;
         }
         .loader {
             border: 4px solid rgba(255,255,255,0.3);
@@ -175,6 +177,9 @@
                 <div id="auth-status" class="mb-4">
                     <p class="text-sm font-semibold text-white/80">Connecting...</p>
                 </div>
+                <div id="payment-status-container" class="mb-4 hidden">
+                    <p id="payment-status-text" class="text-sm font-semibold text-yellow-300"></p>
+                </div>
                  <div id="usage-tracker" class="p-2 bg-white/30 rounded-lg inline-block hidden">
                     <p class="text-sm text-purple-900">
                         Plans used: <span id="usage-count" class="font-bold">0</span>/3.
@@ -200,7 +205,7 @@
                         <h3 class="font-bold text-lg text-purple-800">Kids' Tiffin Box AI Planner</h3>
                         <p class="text-purple-700/80 text-sm mt-1 mb-3">Endless, healthy, and fun ideas for your child's tiffin box.</p>
                         <p class="text-2xl font-bold text-purple-900 mb-4">₹99</p>
-                        <button id="buy-tiffin-pack" class="w-full btn-primary font-semibold py-2 px-4 rounded-lg">Buy Now</button>
+                        <button id="buy-tiffin-pack" class="w-full btn-primary font-semibold py-2 px-4 rounded-lg" disabled>Buy Now</button>
                     </div>
                     <!-- Navratri Special Diet Plan -->
                     <div class="glass-card rounded-2xl p-6 flex flex-col items-center text-center">
@@ -210,7 +215,7 @@
                         <h3 class="font-bold text-lg text-purple-800">Navratri Special Diet Plan</h3>
                         <p class="text-purple-700/80 text-sm mt-1 mb-3">Complete 9-day Satvik meal plan for Navratri fasting.</p>
                         <p class="text-2xl font-bold text-purple-900 mb-4">₹49</p>
-                        <button id="buy-navratri-pack" class="w-full btn-primary font-semibold py-2 px-4 rounded-lg">Buy Now</button>
+                        <button id="buy-navratri-pack" class="w-full btn-primary font-semibold py-2 px-4 rounded-lg" disabled>Buy Now</button>
                     </div>
                 </div>
             </div>
@@ -226,7 +231,7 @@
             <div class="bg-gray-100 p-4 rounded-lg mb-6 text-center">
                 <p class="text-3xl font-bold text-purple-600">₹99 <span class="text-lg font-normal text-gray-500">/ month</span></p>
             </div>
-            <button id="subscribe-now" class="w-full btn-primary font-bold py-3 px-4 rounded-lg shadow-lg text-lg">Subscribe Now</button>
+            <button id="subscribe-now" class="w-full btn-primary font-bold py-3 px-4 rounded-lg shadow-lg text-lg" disabled>Subscribe Now</button>
         </div>
     </div>
 
@@ -261,6 +266,7 @@
 
         // --- Application State ---
         let db, auth, userId = null, userDocRef = null, usageCount = 0;
+        let isPayuReady = false;
         const FREE_LIMIT = 3;
 
         // --- Firebase Initialization ---
@@ -327,7 +333,6 @@
             });
             mainContentContainer.querySelectorAll(':scope > div').forEach(contentPanel => {
                 const isPanelActive = contentPanel.id === `${activeTabId}-content`;
-                // Use inline styles for more reliable show/hide with flexbox
                 contentPanel.style.display = isPanelActive ? '' : 'none';
             });
         }
@@ -338,7 +343,7 @@
                     switchTab(event.currentTarget.dataset.tab);
                 });
             });
-            switchTab('meal-planner'); // Set initial state
+            switchTab('meal-planner'); 
         }
         
         initializeTabs();
@@ -417,11 +422,47 @@
             }
         }
 
+        // --- PayU Script Loading Logic ---
+        function enablePaymentButtons() {
+            document.querySelectorAll('#subscribe-now, #buy-tiffin-pack, #buy-navratri-pack').forEach(button => {
+                button.disabled = false;
+            });
+            console.log("PayU is ready. Payment buttons enabled.");
+        }
+
+        function checkPayuScript() {
+            const paymentStatusContainer = document.getElementById('payment-status-container');
+            const paymentStatusText = document.getElementById('payment-status-text');
+            paymentStatusText.textContent = "Initializing Payment Gateway...";
+            paymentStatusContainer.classList.remove('hidden');
+            
+            const interval = setInterval(() => {
+                if (typeof payu !== 'undefined') {
+                    isPayuReady = true;
+                    enablePaymentButtons();
+                    clearInterval(interval);
+                    paymentStatusContainer.classList.add('hidden');
+                }
+            }, 100);
+
+            setTimeout(() => {
+                if (!isPayuReady) {
+                    clearInterval(interval);
+                    console.error("PayU script failed to load after 20 seconds. Payment buttons remain disabled.");
+                    paymentStatusText.textContent = "⚠️ Payment Gateway failed to load. Please disable ad-blockers and refresh.";
+                    paymentStatusText.classList.remove('text-yellow-300');
+                    paymentStatusText.classList.add('text-red-300');
+                }
+            }, 20000); // Increased timeout to 20 seconds
+        }
+
+        window.addEventListener('load', checkPayuScript);
+
         // --- Reusable PayU Payment Logic ---
         async function initiatePayment(details, buttonElement) {
-            if (typeof payu === 'undefined') {
-                console.error("PayU script has not loaded correctly.");
-                alert("Payment gateway is not available. Please check your internet connection or disable any ad blockers and refresh the page.");
+            if (!isPayuReady) {
+                console.error("Attempted to initiate payment, but PayU is not ready.");
+                // The main UI will already show a persistent error, so no alert is needed.
                 return;
             }
 
@@ -448,8 +489,6 @@
                     body: JSON.stringify(paymentDetails),
                 });
 
-                // **IMPROVED ERROR HANDLING**
-                // This will show us the specific error from the server.
                 if (!response.ok) {
                     const errorText = await response.text();
                     throw new Error(`Server responded with ${response.status}: ${errorText}`);
@@ -460,7 +499,6 @@
                 const paymentData = { ...paymentDetails, key, hash, ...payuConfig, phone: '9999999999' };
                 payu.launch(paymentData);
                 
-                // Reset button after a delay in case the user closes the payment window
                 setTimeout(() => {
                     buttonElement.disabled = false;
                     buttonElement.textContent = originalButtonText;
@@ -468,7 +506,6 @@
 
             } catch (error) {
                 console.error("Payment initiation failed:", error);
-                // The alert will now be much more informative.
                 alert(`Could not start payment.\n\nDetails: ${error.message}`);
                 buttonElement.disabled = false;
                 buttonElement.textContent = originalButtonText;
@@ -499,4 +536,3 @@
     </script>
 </body>
 </html>
-
