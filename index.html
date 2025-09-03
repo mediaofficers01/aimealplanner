@@ -175,7 +175,7 @@
             <!-- Output & Status Area -->
             <div class="mt-6 text-center">
                 <div id="auth-status" class="mb-4">
-                    <p class="text-sm font-semibold text-white/80">Connecting...</p>
+                    <!-- Populated by JS -->
                 </div>
                 <div id="payment-status-container" class="mb-4 hidden">
                     <p id="payment-status-text" class="text-sm font-semibold text-yellow-300"></p>
@@ -240,7 +240,7 @@
 
         // --- Firebase SDK Imports ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, RecaptchaVerifier, signInWithPhoneNumber, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- YOUR FIREBASE CONFIGURATION ---
@@ -280,17 +280,106 @@
         }
 
         // --- Authentication Handling ---
+        const authStatusDiv = document.getElementById('auth-status');
+
         onAuthStateChanged(auth, user => {
             if (user) {
+                // User is signed in
                 userId = user.uid;
-                document.getElementById('auth-status').innerHTML = `<p class="text-sm font-semibold text-white/90">✅ Online</p>`;
+                authStatusDiv.innerHTML = `
+                    <div class="flex items-center justify-center gap-2">
+                        <p class="text-sm font-semibold text-white/90">Welcome, ${user.phoneNumber}</p>
+                        <button id="logout-button" class="text-xs text-purple-200 hover:underline">(Logout)</button>
+                    </div>
+                `;
+                document.getElementById('logout-button').addEventListener('click', signOutUser);
+                
                 userDocRef = doc(db, "users", userId);
                 setupUsageListener();
             } else {
-                signInAnonymously(auth).catch(err => console.error("Anonymous sign-in failed:", err));
+                // User is signed out
+                userId = null;
+                userDocRef = null;
+                authStatusDiv.innerHTML = `
+                    <div id="phone-login-container" class="flex flex-col items-center gap-2">
+                        <p class="text-white/90 font-semibold text-sm mb-1">Login or Sign Up with your Phone</p>
+                        <input type="tel" id="phone-number" class="w-full max-w-xs p-2 border border-purple-200 rounded-lg text-center" placeholder="+91 12345 67890">
+                        <button id="send-otp-button" class="btn-primary font-semibold py-2 px-4 rounded-lg text-sm w-full max-w-xs">Send OTP</button>
+                        <div id="recaptcha-container" class="mt-2"></div>
+                        <div id="otp-container" class="hidden w-full max-w-xs flex flex-col items-center gap-2">
+                            <input type="text" id="otp-input" class="w-full p-2 border border-purple-200 rounded-lg text-center" placeholder="Enter 6-digit OTP" autocomplete="one-time-code">
+                            <button id="verify-otp-button" class="btn-primary font-semibold py-2 px-4 rounded-lg text-sm w-full">Verify & Login</button>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('send-otp-button').addEventListener('click', sendOtp);
+                document.getElementById('usage-tracker').classList.add('hidden');
+                setupRecaptcha();
             }
         });
         
+        function setupRecaptcha() {
+            window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                'size': 'invisible',
+                'callback': (response) => {
+                    // reCAPTCHA solved, allow signInWithPhoneNumber.
+                }
+            });
+        }
+
+        async function sendOtp() {
+            const phoneNumber = document.getElementById('phone-number').value;
+            const sendOtpButton = document.getElementById('send-otp-button');
+            const appVerifier = window.recaptchaVerifier;
+
+            sendOtpButton.disabled = true;
+            sendOtpButton.textContent = "Sending...";
+
+            try {
+                const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
+                window.confirmationResult = confirmationResult;
+                
+                document.getElementById('phone-number').parentElement.classList.add('hidden');
+                document.getElementById('otp-container').classList.remove('hidden');
+                document.getElementById('verify-otp-button').addEventListener('click', verifyOtp);
+
+            } catch (error) {
+                console.error("Error sending OTP:", error);
+                alert(`Error: ${error.message}`);
+                sendOtpButton.disabled = false;
+                sendOtpButton.textContent = "Send OTP";
+                window.recaptchaVerifier.render().then(widgetId => {
+                    grecaptcha.reset(widgetId);
+                });
+            }
+        }
+
+        async function verifyOtp() {
+            const code = document.getElementById('otp-input').value;
+            const verifyButton = document.getElementById('verify-otp-button');
+            verifyButton.disabled = true;
+            verifyButton.textContent = "Verifying...";
+
+            try {
+                await window.confirmationResult.confirm(code);
+                // onAuthStateChanged will handle successful login
+            } catch (error) {
+                console.error("Error verifying OTP:", error);
+                alert(`Error: ${error.message}`);
+                verifyButton.disabled = false;
+                verifyButton.textContent = "Verify & Login";
+            }
+        }
+
+        async function signOutUser() {
+            try {
+                await signOut(auth);
+                // onAuthStateChanged will handle UI cleanup
+            } catch (error) {
+                console.error("Sign out failed:", error);
+            }
+        }
+
         // --- Database Listener ---
         function setupUsageListener() {
             onSnapshot(userDocRef, docSnap => {
@@ -299,8 +388,13 @@
                     usageCount = docSnap.data().usageCount || 0;
                 } else {
                     usageCount = 0;
-                    if (!docSnap.exists()) console.log("Creating user profile.");
-                    updateUsageCount(0);
+                    if (!docSnap.exists()) {
+                         setDoc(userDocRef, { 
+                            usageCount: 0, 
+                            month: currentMonth,
+                            phoneNumber: auth.currentUser.phoneNumber,
+                        }, { merge: true });
+                    }
                 }
                 updateUsageUI();
             });
@@ -359,6 +453,10 @@
         document.getElementById('guest-menu').addEventListener('click', () => handleGeneration('guest-menu'));
 
         function handleGeneration(type) {
+            if(!auth.currentUser) {
+                alert("Please log in to generate plans.");
+                return;
+            }
             if (usageCount >= FREE_LIMIT) {
                 upgradeModal.style.display = 'block';
                 return;
@@ -462,19 +560,19 @@
         async function initiatePayment(details, buttonElement) {
             if (!isPayuReady) {
                 console.error("Attempted to initiate payment, but PayU is not ready.");
-                // The main UI will already show a persistent error, so no alert is needed.
                 return;
             }
 
             if (!userId) { 
-                alert("Please wait, user profile is not ready yet."); 
+                alert("Please log in to make a payment."); 
                 return; 
             }
             
             const paymentDetails = {
                 ...details,
-                firstname: "Guest",
-                email: "guest@example.com",
+                firstname: "User",
+                email: "user@example.com",
+                phone: auth.currentUser.phoneNumber,
                 txnid: "TXN" + Date.now()
             };
 
@@ -496,7 +594,7 @@
 
                 const { hash, key } = await response.json();
 
-                const paymentData = { ...paymentDetails, key, hash, ...payuConfig, phone: '9999999999' };
+                const paymentData = { ...paymentDetails, key, hash, ...payuConfig };
                 payu.launch(paymentData);
                 
                 setTimeout(() => {
@@ -536,3 +634,4 @@
     </script>
 </body>
 </html>
+
