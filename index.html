@@ -177,8 +177,9 @@
                 <div id="auth-status" class="mb-4">
                     <!-- Populated by JS -->
                 </div>
-                <div id="payment-status-container" class="mb-4 hidden">
+                <div id="payment-status-container" class="mb-4 hidden flex items-center justify-center gap-2">
                     <p id="payment-status-text" class="text-sm font-semibold text-yellow-300"></p>
+                    <button id="retry-payment-button" class="hidden text-sm font-semibold text-purple-200 hover:underline">(Retry)</button>
                 </div>
                  <div id="usage-tracker" class="p-2 bg-white/30 rounded-lg inline-block hidden">
                     <p class="text-sm text-purple-900">
@@ -531,8 +532,14 @@
         function checkPayuScript() {
             const paymentStatusContainer = document.getElementById('payment-status-container');
             const paymentStatusText = document.getElementById('payment-status-text');
+            const retryPaymentButton = document.getElementById('retry-payment-button');
+
+            // Reset UI for retry attempts
             paymentStatusText.textContent = "Initializing Payment Gateway...";
+            paymentStatusText.classList.remove('text-red-300');
+            paymentStatusText.classList.add('text-yellow-300');
             paymentStatusContainer.classList.remove('hidden');
+            retryPaymentButton.classList.add('hidden');
             
             const interval = setInterval(() => {
                 if (typeof payu !== 'undefined') {
@@ -547,14 +554,18 @@
                 if (!isPayuReady) {
                     clearInterval(interval);
                     console.error("PayU script failed to load after 20 seconds. Payment buttons remain disabled.");
-                    paymentStatusText.textContent = "⚠️ Payment Gateway failed to load. Please disable ad-blockers and refresh.";
+                    paymentStatusText.textContent = "⚠️ Payment Gateway failed to load.";
                     paymentStatusText.classList.remove('text-yellow-300');
                     paymentStatusText.classList.add('text-red-300');
+                    retryPaymentButton.classList.remove('hidden');
                 }
-            }, 20000); // Increased timeout to 20 seconds
+            }, 20000); 
         }
 
-        window.addEventListener('load', checkPayuScript);
+        window.addEventListener('load', () => {
+            checkPayuScript();
+            document.getElementById('retry-payment-button').addEventListener('click', checkPayuScript);
+        });
 
         // --- Reusable PayU Payment Logic ---
         async function initiatePayment(details, buttonElement) {
