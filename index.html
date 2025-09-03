@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://checkout.payu.in/_payment.sjs"></script>
+    <!-- PayU script is now loaded dynamically in the script module -->
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -303,9 +303,11 @@
                 userDocRef = null;
                 authStatusDiv.innerHTML = `
                     <div id="phone-login-container" class="flex flex-col items-center gap-2">
-                        <p class="text-white/90 font-semibold text-sm mb-1">Login or Sign Up with your Phone</p>
-                        <input type="tel" id="phone-number" class="w-full max-w-xs p-2 border border-purple-200 rounded-lg text-center" placeholder="+91 12345 67890">
-                        <button id="send-otp-button" class="btn-primary font-semibold py-2 px-4 rounded-lg text-sm w-full max-w-xs">Send OTP</button>
+                        <div id="phone-entry-container" class="w-full max-w-xs flex flex-col items-center gap-2">
+                            <p class="text-white/90 font-semibold text-sm mb-1">Login or Sign Up with your Phone</p>
+                            <input type="tel" id="phone-number" class="w-full p-2 border border-purple-200 rounded-lg text-center" placeholder="+91 12345 67890">
+                            <button id="send-otp-button" class="btn-primary font-semibold py-2 px-4 rounded-lg text-sm w-full">Send OTP</button>
+                        </div>
                         <div id="recaptcha-container" class="mt-2"></div>
                         <div id="otp-container" class="hidden w-full max-w-xs flex flex-col items-center gap-2">
                             <input type="text" id="otp-input" class="w-full p-2 border border-purple-200 rounded-lg text-center" placeholder="Enter 6-digit OTP" autocomplete="one-time-code">
@@ -340,7 +342,8 @@
                 const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
                 window.confirmationResult = confirmationResult;
                 
-                document.getElementById('phone-number').parentElement.classList.add('hidden');
+                // Hide phone entry and show OTP entry
+                document.getElementById('phone-entry-container').classList.add('hidden');
                 document.getElementById('otp-container').classList.remove('hidden');
                 document.getElementById('verify-otp-button').addEventListener('click', verifyOtp);
 
@@ -349,9 +352,12 @@
                 alert(`Error: ${error.message}`);
                 sendOtpButton.disabled = false;
                 sendOtpButton.textContent = "Send OTP";
-                window.recaptchaVerifier.render().then(widgetId => {
-                    grecaptcha.reset(widgetId);
-                });
+                // It's possible the verifier needs to be reset on error
+                if (window.recaptchaVerifier) {
+                    window.recaptchaVerifier.render().then(widgetId => {
+                         if(grecaptcha) grecaptcha.reset(widgetId);
+                    });
+                }
             }
         }
 
@@ -363,7 +369,7 @@
 
             try {
                 await window.confirmationResult.confirm(code);
-                // onAuthStateChanged will handle successful login
+                // onAuthStateChanged will handle successful login UI update
             } catch (error) {
                 console.error("Error verifying OTP:", error);
                 alert(`Error: ${error.message}`);
@@ -420,15 +426,23 @@
         const upgradeButton = document.getElementById('upgrade-button');
 
         function switchTab(activeTabId) {
+             // Hide all content panels first
+            mainContentContainer.querySelectorAll(':scope > div').forEach(panel => {
+                panel.classList.add('hidden');
+            });
+
+            // Show the active one
+            const activePanel = document.getElementById(`${activeTabId}-content`);
+            if (activePanel) {
+                activePanel.classList.remove('hidden');
+            }
+
+            // Update button styles
             tabsContainer.querySelectorAll('button').forEach(button => {
                 const isButtonActive = button.dataset.tab === activeTabId;
                 button.classList.toggle('tab-active', isButtonActive);
                 button.classList.toggle('text-white', isButtonActive);
                 button.classList.toggle('text-purple-600', !isButtonActive);
-            });
-            mainContentContainer.querySelectorAll(':scope > div').forEach(contentPanel => {
-                const isPanelActive = contentPanel.id === `${activeTabId}-content`;
-                contentPanel.style.display = isPanelActive ? '' : 'none';
             });
         }
 
@@ -521,7 +535,11 @@
             }
         }
 
-        // --- PayU Script Loading Logic ---
+        // --- PayU Script Loading Logic (Dynamic) ---
+        const paymentStatusContainer = document.getElementById('payment-status-container');
+        const paymentStatusText = document.getElementById('payment-status-text');
+        const retryPaymentButton = document.getElementById('retry-payment-button');
+
         function enablePaymentButtons() {
             document.querySelectorAll('#subscribe-now, #buy-tiffin-pack, #buy-navratri-pack').forEach(button => {
                 button.disabled = false;
@@ -529,42 +547,45 @@
             console.log("PayU is ready. Payment buttons enabled.");
         }
 
-        function checkPayuScript() {
-            const paymentStatusContainer = document.getElementById('payment-status-container');
-            const paymentStatusText = document.getElementById('payment-status-text');
-            const retryPaymentButton = document.getElementById('retry-payment-button');
-
-            // Reset UI for retry attempts
+        function loadPayuScript() {
+            // Reset UI for loading attempt
             paymentStatusText.textContent = "Initializing Payment Gateway...";
             paymentStatusText.classList.remove('text-red-300');
             paymentStatusText.classList.add('text-yellow-300');
             paymentStatusContainer.classList.remove('hidden');
             retryPaymentButton.classList.add('hidden');
             
-            const interval = setInterval(() => {
-                if (typeof payu !== 'undefined') {
-                    isPayuReady = true;
-                    enablePaymentButtons();
-                    clearInterval(interval);
-                    paymentStatusContainer.classList.add('hidden');
-                }
-            }, 100);
+            // Check if script already exists to avoid duplicates on retry
+            const existingScript = document.querySelector('script[src="https://checkout.payu.in/_payment.sjs"]');
+            if(existingScript) {
+                existingScript.remove();
+            }
 
-            setTimeout(() => {
-                if (!isPayuReady) {
-                    clearInterval(interval);
-                    console.error("PayU script failed to load after 20 seconds. Payment buttons remain disabled.");
-                    paymentStatusText.textContent = "⚠️ Payment Gateway failed to load.";
-                    paymentStatusText.classList.remove('text-yellow-300');
-                    paymentStatusText.classList.add('text-red-300');
-                    retryPaymentButton.classList.remove('hidden');
-                }
-            }, 20000); 
+            const script = document.createElement('script');
+            script.src = "https://checkout.payu.in/_payment.sjs";
+            
+            script.onload = () => {
+                console.log("PayU script loaded successfully.");
+                isPayuReady = true;
+                enablePaymentButtons();
+                paymentStatusContainer.classList.add('hidden');
+            };
+            
+            script.onerror = () => {
+                console.error("PayU script failed to load. Please check network connection and ad-blockers.");
+                isPayuReady = false;
+                paymentStatusText.textContent = "⚠️ Payment Gateway failed to load.";
+                paymentStatusText.classList.remove('text-yellow-300');
+                paymentStatusText.classList.add('text-red-300');
+                retryPaymentButton.classList.remove('hidden');
+            };
+            
+            document.head.appendChild(script);
         }
 
         window.addEventListener('load', () => {
-            checkPayuScript();
-            document.getElementById('retry-payment-button').addEventListener('click', checkPayuScript);
+            loadPayuScript();
+            retryPaymentButton.addEventListener('click', loadPayuScript);
         });
 
         // --- Reusable PayU Payment Logic ---
