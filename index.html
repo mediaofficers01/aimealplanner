@@ -419,6 +419,12 @@
 
         // --- Reusable PayU Payment Logic ---
         async function initiatePayment(details, buttonElement) {
+            if (typeof payu === 'undefined') {
+                console.error("PayU script has not loaded correctly.");
+                alert("Payment gateway is not available. Please check your internet connection or disable any ad blockers and refresh the page.");
+                return;
+            }
+
             if (!userId) { 
                 alert("Please wait, user profile is not ready yet."); 
                 return; 
@@ -493,3 +499,4 @@
     </script>
 </body>
 </html>
+
