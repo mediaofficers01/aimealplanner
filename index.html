@@ -143,8 +143,11 @@
                         </div>
                         <h4 class="font-bold text-lg text-gray-800">Kids' Tiffin Box AI Planner</h4>
                         <p class="text-gray-600 text-sm my-2">Endless, healthy, and fun ideas for your child's tiffin box.</p>
-                        <button class="buy-premium-btn mt-4 w-full bg-pink-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-pink-600 transition duration-300" data-amount="99.00" data-product="Kids Tiffin Box AI Planner">Buy Now for ₹99</button>
-                        <button class="generate-premium-plan-btn hidden mt-4 w-full generate-btn text-white font-bold py-2 px-4 rounded-lg" data-product-prompt="a week of healthy and fun tiffin box ideas for a child">Generate Tiffin Plan</button>
+                        <div class="mt-4">
+                            <button class="buy-premium-btn w-full bg-pink-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-pink-600 transition duration-300" data-amount="99.00" data-product="Kids Tiffin Box AI Planner">Buy Now for ₹99</button>
+                            <button class="generate-premium-plan-btn hidden w-full generate-btn text-white font-bold py-2 px-4 rounded-lg" data-product-prompt="a week of healthy and fun tiffin box ideas for a child">Generate Tiffin Plan</button>
+                            <p class="expiry-date-info text-xs text-green-700 font-semibold mt-2 hidden"></p>
+                        </div>
                     </div>
                     <!-- Navratri Special Diet Plan -->
                     <div class="premium-card text-center p-6 rounded-2xl" data-product-card="Navratri Special Diet Plan">
@@ -153,8 +156,11 @@
                         </div>
                         <h4 class="font-bold text-lg text-gray-800">Navratri Special Diet Plan</h4>
                         <p class="text-gray-600 text-sm my-2">Complete 9-day Satvik meal plan for Navratri fasting.</p>
-                        <button class="buy-premium-btn mt-4 w-full bg-orange-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-orange-600 transition duration-300" data-amount="49.00" data-product="Navratri Special Diet Plan">Buy Now for ₹49</button>
-                         <button class="generate-premium-plan-btn hidden mt-4 w-full generate-btn text-white font-bold py-2 px-4 rounded-lg" data-product-prompt="a complete 9-day Satvik meal plan for Navratri fasting">Generate Navratri Plan</button>
+                        <div class="mt-4">
+                            <button class="buy-premium-btn w-full bg-orange-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-orange-600 transition duration-300" data-amount="49.00" data-product="Navratri Special Diet Plan">Buy Now for ₹49</button>
+                             <button class="generate-premium-plan-btn hidden w-full generate-btn text-white font-bold py-2 px-4 rounded-lg" data-product-prompt="a complete 9-day Satvik meal plan for Navratri fasting">Generate Navratri Plan</button>
+                             <p class="expiry-date-info text-xs text-green-700 font-semibold mt-2 hidden"></p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -201,7 +207,7 @@
         // Firebase Imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, FieldValue } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, Timestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         // --- Firebase Configuration ---
         const firebaseConfig = {
@@ -309,13 +315,30 @@
                 const product = card.dataset.productCard;
                 const buyButton = card.querySelector('.buy-premium-btn');
                 const generateButton = card.querySelector('.generate-premium-plan-btn');
+                const expiryInfo = card.querySelector('.expiry-date-info');
 
-                if (userPurchases && userPurchases[product]) {
-                    buyButton.classList.add('hidden');
-                    generateButton.classList.remove('hidden');
+                const purchaseData = userPurchases[product];
+
+                if (purchaseData && purchaseData.purchaseDate) {
+                    const purchaseDate = purchaseData.purchaseDate.toDate();
+                    const expiryDate = new Date(purchaseDate);
+                    expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+                    const isExpired = new Date() > expiryDate;
+
+                    if (!isExpired) {
+                        buyButton.classList.add('hidden');
+                        generateButton.classList.remove('hidden');
+                        expiryInfo.textContent = `Expires on: ${expiryDate.toLocaleDateString()}`;
+                        expiryInfo.classList.remove('hidden');
+                    } else {
+                        buyButton.classList.remove('hidden');
+                        generateButton.classList.add('hidden');
+                        expiryInfo.classList.add('hidden');
+                    }
                 } else {
                     buyButton.classList.remove('hidden');
                     generateButton.classList.add('hidden');
+                    expiryInfo.classList.add('hidden');
                 }
             });
         }
