@@ -78,7 +78,7 @@
                 <!-- Meal Planner Content -->
                 <div id="meal-planner-content">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input id="family-size" type="number" placeholder="Family Size (e.g., 4)" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+                        <input id="family-size" type="number" placeholder="Family Size (e.g., 4)" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" required min="1">
                         <select id="diet-type" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
                             <option>Veg</option> <option>Non-Veg</option>
                         </select>
@@ -434,6 +434,14 @@
         logoutBtn.addEventListener('click', () => signOut(auth));
         
         generatePlanBtn.addEventListener('click', () => {
+            const familySizeInput = document.getElementById('family-size');
+            if (!familySizeInput.value || parseInt(familySizeInput.value) <= 0) {
+                paymentStatus.textContent = "Please enter a valid family size.";
+                setTimeout(() => paymentStatus.textContent = '', 3000);
+                return;
+            }
+            paymentStatus.textContent = ""; 
+
             const inputs = mealPlannerContent.querySelectorAll('input, select');
             let details = [];
             inputs.forEach(input => details.push(input.value));
