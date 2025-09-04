@@ -3,667 +3,254 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Meal & Festival Planner</title>
+    <title>AI Tool - PayUmoney Integration</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- PayU script is now loaded dynamically in the script module -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha512/0.8.0/sha512.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Poppins', sans-serif;
-            background-image: linear-gradient(to top, #fbc2eb 0%, #a6c1ee 100%);
+            font-family: 'Inter', sans-serif;
         }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.6);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        .tab-active {
-            background-color: #8B5CF6; /* purple-500 */
-            color: white;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-        }
-        .btn-primary {
-            background-image: linear-gradient(to right, #8B5CF6 0%, #EC4899 51%, #8B5CF6 100%);
-            background-size: 200% auto;
-            color: white;
-            transition: 0.5s;
-            box-shadow: 0 4px 15px 0 rgba(139, 92, 246, 0.4);
-        }
-        .btn-primary:hover {
-            background-position: right center;
-        }
-        .btn-primary:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            background-image: none;
-            background-color: #a78bfa;
-        }
-        .loader {
-            border: 4px solid rgba(255,255,255,0.3);
-            border-top: 4px solid #EC4899;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.5);
-            -webkit-animation-name: fadeIn;
-            -webkit-animation-duration: 0.4s;
-            animation-name: fadeIn;
-            animation-duration: 0.4s
-        }
-        .modal-content {
-            background-color: #fefefe;
-            margin: 10% auto;
-            padding: 24px;
-            border: 1px solid #888;
-            width: 90%;
-            max-width: 500px;
-            border-radius: 0.5rem;
-            -webkit-animation-name: slideIn;
-            -webkit-animation-duration: 0.4s;
-            animation-name: slideIn;
-            animation-duration: 0.4s
-        }
-        @-webkit-keyframes slideIn {
-            from {bottom: -300px; opacity: 0} 
-            to {bottom: 0; opacity: 1}
-        }
-        @keyframes slideIn {
-            from {transform: translateY(20px); opacity: 0}
-            to {transform: translateY(0); opacity: 1}
-        }
-        @-webkit-keyframes fadeIn {
-            from {opacity: 0} 
-            to {opacity: 1}
-        }
-        @keyframes fadeIn {
-            from {opacity: 0} 
-            to {opacity: 1}
-        }
-        .modal-close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .prose { color: #374151; }
-        .prose h1, .prose h2, .prose h3 { font-weight: 700; color: #4c1d95; }
-        .prose strong { color: #5b21b6; }
-        .prose ul { list-style: disc; padding-left: 1.5rem; }
-        .prose li { margin-bottom: 0.5rem; }
     </style>
 </head>
-<body class="antialiased">
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
 
-    <div class="min-h-screen w-full p-4 flex items-center justify-center">
-        <div class="w-full max-w-4xl mx-auto">
-            
-            <header class="text-center mb-8">
-                <h1 class="text-3xl sm:text-4xl font-bold text-white text-shadow">AI Meal & Festival Planner</h1>
-                <p class="text-white/80 mt-1">Your all-in-one assistant for Indian families.</p>
-            </header>
-            
-            <div class="glass-card rounded-2xl shadow-2xl p-4 sm:p-6">
-
-                <!-- Tabs -->
-                <div id="tabs-container" class="mb-6 bg-purple-100/50 rounded-lg p-1.5 flex justify-center space-x-2">
-                    <button class="flex-1 flex items-center justify-center gap-2 text-sm sm:text-base font-semibold py-2.5 px-4 rounded-md" data-tab="meal-planner">
-                        <i data-lucide="utensils-crossed"></i> Meal Planner
-                    </button>
-                    <button class="flex-1 flex items-center justify-center gap-2 text-sm sm:text-base font-semibold text-purple-600 py-2.5 px-4 rounded-md" data-tab="festival-assistant">
-                        <i data-lucide="party-popper"></i> Festival Assistant
-                    </button>
-                    <button class="flex-1 flex items-center justify-center gap-2 text-sm sm:text-base font-semibold text-purple-600 py-2.5 px-4 rounded-md" data-tab="quick-mode">
-                        <i data-lucide="zap"></i> Quick Mode
-                    </button>
-                </div>
-
-                <!-- Tab Content -->
-                <main id="tab-content">
-                    <!-- AI Daily Meal Planner -->
-                    <div id="meal-planner-content" class="space-y-6">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            <input type="number" id="family-size" class="w-full p-2 border border-purple-200 rounded-lg" placeholder="Family Size (e.g., 4)">
-                            <select id="diet-type" class="w-full p-2 border border-purple-200 rounded-lg">
-                                <option>Veg</option><option>Non-Veg</option><option>Jain</option><option>Satvik</option>
-                            </select>
-                            <select id="regional-taste" class="w-full p-2 border border-purple-200 rounded-lg">
-                                <option>North Indian (Punjabi)</option><option>Gujarati</option><option>South Indian</option><option>Bengali</option><option>Marathi</option>
-                            </select>
-                            <select id="health-pref" class="w-full p-2 border border-purple-200 rounded-lg">
-                                <option>None</option><option>Low Oil</option><option>Diabetic-Friendly</option><option>Kids-Friendly</option>
-                            </select>
-                            <select id="language" class="w-full p-2 border border-purple-200 rounded-lg">
-                                <option>English</option><option>Hindi</option><option>Hinglish</option>
-                            </select>
-                        </div>
-                        <button id="generate-meal-plan" class="w-full btn-primary font-semibold py-3 px-4 rounded-lg">Generate Weekly Meal Plan</button>
-                    </div>
-
-                    <!-- AI Festival Assistant -->
-                    <div id="festival-assistant-content" class="hidden flex flex-col items-center space-y-6">
-                        <select id="festival-name" class="w-full max-w-sm p-2 border border-purple-200 rounded-lg">
-                            <option>Diwali</option><option>Holi</option><option>Raksha Bandhan</option><option>Navratri</option><option>Karva Chauth</option><option>Janmashtami</option>
-                        </select>
-                        <button id="generate-festival-plan" class="w-full max-w-sm btn-primary font-semibold py-3 px-4 rounded-lg">Get Festival Guide</button>
-                    </div>
-
-                    <!-- Quick Mode -->
-                    <div id="quick-mode-content" class="hidden flex flex-col items-center space-y-4">
-                        <button id="quick-cook" class="w-full max-w-sm btn-primary font-semibold py-3 px-4 rounded-lg">What to cook today?</button>
-                        <button id="guest-menu" class="w-full max-w-sm btn-primary font-semibold py-3 px-4 rounded-lg">Guests coming tonight?</button>
-                    </div>
-                </main>
-            </div>
-
-            <!-- Output & Status Area -->
-            <div class="mt-6 text-center">
-                <div id="auth-status" class="mb-4">
-                    <!-- Populated by JS -->
-                </div>
-                <div id="payment-status-container" class="mb-4 hidden flex items-center justify-center gap-2">
-                    <p id="payment-status-text" class="text-sm font-semibold text-yellow-300"></p>
-                    <button id="retry-payment-button" class="hidden text-sm font-semibold text-purple-200 hover:underline">(Retry)</button>
-                </div>
-                 <div id="usage-tracker" class="p-2 bg-white/30 rounded-lg inline-block hidden">
-                    <p class="text-sm text-purple-900">
-                        Plans used: <span id="usage-count" class="font-bold">0</span>/3.
-                        <button id="upgrade-button" class="ml-2 font-semibold text-purple-700 hover:underline">Upgrade</button>
-                    </p>
-                </div>
-            </div>
-
-            <div id="output-area" class="mt-6 glass-card rounded-2xl shadow-xl p-6 hidden">
-                <div id="loader" class="loader mx-auto hidden"></div>
-                <div id="result-content"></div>
-            </div>
-
-            <!-- Premium Packs Section -->
-            <div id="premium-packs" class="mt-8">
-                <h2 class="text-center text-2xl font-bold text-white mb-4">Premium One-Time Packs</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Kids' Tiffin Box Planner -->
-                    <div class="glass-card rounded-2xl p-6 flex flex-col items-center text-center">
-                        <div class="p-3 bg-pink-200 rounded-full mb-3">
-                            <i data-lucide="smile" class="text-pink-600"></i>
-                        </div>
-                        <h3 class="font-bold text-lg text-purple-800">Kids' Tiffin Box AI Planner</h3>
-                        <p class="text-purple-700/80 text-sm mt-1 mb-3">Endless, healthy, and fun ideas for your child's tiffin box.</p>
-                        <p class="text-2xl font-bold text-purple-900 mb-4">₹99</p>
-                        <button id="buy-tiffin-pack" class="w-full btn-primary font-semibold py-2 px-4 rounded-lg" disabled>Buy Now</button>
-                    </div>
-                    <!-- Navratri Special Diet Plan -->
-                    <div class="glass-card rounded-2xl p-6 flex flex-col items-center text-center">
-                         <div class="p-3 bg-orange-200 rounded-full mb-3">
-                            <i data-lucide="flame" class="text-orange-600"></i>
-                        </div>
-                        <h3 class="font-bold text-lg text-purple-800">Navratri Special Diet Plan</h3>
-                        <p class="text-purple-700/80 text-sm mt-1 mb-3">Complete 9-day Satvik meal plan for Navratri fasting.</p>
-                        <p class="text-2xl font-bold text-purple-900 mb-4">₹49</p>
-                        <button id="buy-navratri-pack" class="w-full btn-primary font-semibold py-2 px-4 rounded-lg" disabled>Buy Now</button>
-                    </div>
-                </div>
-            </div>
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 space-y-6">
+        
+        <div class="text-center">
+            <h1 class="text-3xl font-bold text-gray-800">AI Tool</h1>
+            <p class="text-gray-500">Login to continue</p>
         </div>
-    </div>
-    
-    <!-- Upgrade Modal -->
-    <div id="upgradeModal" class="modal">
-        <div class="modal-content">
-            <span id="closeModal" class="modal-close">&times;</span>
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">Unlock Unlimited Planning!</h2>
-            <p class="text-gray-600 mb-6">You've reached your free limit. Upgrade now for unlimited meal plans, festival guides, and exclusive features.</p>
-            <div class="bg-gray-100 p-4 rounded-lg mb-6 text-center">
-                <p class="text-3xl font-bold text-purple-600">₹99 <span class="text-lg font-normal text-gray-500">/ month</span></p>
+
+        <!-- Login Section -->
+        <div id="login-section" class="space-y-4">
+            <div>
+                <label for="phone-number" class="text-sm font-medium text-gray-700">Phone Number</label>
+                <input type="tel" id="phone-number" class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="+91 XXXXX XXXXX">
             </div>
-            <button id="subscribe-now" class="w-full btn-primary font-bold py-3 px-4 rounded-lg shadow-lg text-lg" disabled>Subscribe Now</button>
+            <button id="send-otp-btn" class="w-full bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-700 transition duration-300">Send OTP</button>
+            
+            <div id="recaptcha-container"></div>
+            
+            <div id="otp-section" class="hidden space-y-2">
+                 <label for="otp" class="text-sm font-medium text-gray-700">Enter OTP</label>
+                <input type="text" id="otp" class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="6-digit code">
+                <button id="verify-otp-btn" class="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 transition duration-300">Verify OTP</button>
+            </div>
+            <p id="auth-status" class="text-sm text-center text-red-500"></p>
         </div>
+
+        <!-- Main App Section (after login) -->
+        <div id="app-section" class="hidden text-center space-y-6">
+            <div>
+                 <h2 class="text-2xl font-bold text-gray-800">Welcome!</h2>
+                 <p id="user-info" class="text-gray-600"></p>
+            </div>
+           
+            <div class="bg-gray-50 p-6 rounded-lg">
+                <h3 class="font-semibold text-lg text-gray-700">Get Premium Access</h3>
+                <p class="text-gray-500 text-sm mb-4">Unlock all features for just ₹10.00</p>
+                <button id="buy-now-btn" class="w-full bg-orange-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-orange-600 transition-transform transform hover:scale-105 duration-300 shadow-md">
+                    Buy Now for ₹10
+                </button>
+            </div>
+            
+            <button id="logout-btn" class="w-full text-indigo-600 font-semibold py-2 px-4 rounded-lg hover:bg-indigo-50 transition duration-300">Logout</button>
+        </div>
+        
     </div>
+
+    <!-- This form will be dynamically populated and submitted to PayUmoney -->
+    <form id="payment-form" method="post" class="hidden"></form>
 
     <script type="module">
-        lucide.createIcons();
-
-        // --- Firebase SDK Imports ---
+        // Firebase Imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, RecaptchaVerifier, signInWithPhoneNumber, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // --- YOUR FIREBASE CONFIGURATION ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyAUoU9RFUJi56rYHERq8zOrl1qQBB5KQSM",
-            authDomain: "mymealplannerapp-615f7.firebaseapp.com",
-            projectId: "mymealplannerapp-615f7",
-            storageBucket: "mymealplannerapp-615f7.firebasestorage.app",
-            messagingSenderId: "653426216828",
-            appId: "1:653426216828:web:a54158b674dfd72cf71ef9",
-            measurementId: "G-07NH5QZWYJ"
-        };
+        import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         
-        // --- Gemini AI Configuration ---
-        const GEMINI_API_KEY = "AIzaSyDsjORy0X4SZEaQBYbkwq0_cbA2-_qC1v0";
+        // --- Firebase Configuration ---
+        // Canvas will provide this configuration object.
+        const firebaseConfig = typeof __firebase_config !== 'undefined' 
+            ? JSON.parse(__firebase_config) 
+            : { apiKey: "YOUR_API_KEY", authDomain: "YOUR_AUTH_DOMAIN", projectId: "YOUR_PROJECT_ID" };
 
-        // --- PayU Configuration ---
-        const functionUrl = "https://payuhashgenerator-ejvt7xfcha-uc.a.run.app"; 
-        const payuConfig = {
-            furl: window.location.href, // Failure URL
-            surl: window.location.href, // Success URL
-        };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
 
-        // --- Application State ---
-        let db, auth, userId = null, userDocRef = null, usageCount = 0;
-        let isPayuReady = false;
-        const FREE_LIMIT = 3;
+        // --- UI Elements ---
+        const loginSection = document.getElementById('login-section');
+        const appSection = document.getElementById('app-section');
+        const otpSection = document.getElementById('otp-section');
+        const sendOtpBtn = document.getElementById('send-otp-btn');
+        const verifyOtpBtn = document.getElementById('verify-otp-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const buyNowBtn = document.getElementById('buy-now-btn');
+        const phoneNumberInput = document.getElementById('phone-number');
+        const otpInput = document.getElementById('otp');
+        const userInfo = document.getElementById('user-info');
+        const authStatus = document.getElementById('auth-status');
 
-        // --- Firebase Initialization ---
-        try {
-            const app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-            auth = getAuth(app);
-        } catch (error) {
-            console.error("Firebase initialization failed:", error);
-            document.getElementById('auth-status').innerHTML = `<p class="text-sm font-semibold text-red-300">❌ Offline: Could not connect to backend.</p>`;
-        }
+        let confirmationResult = null;
 
-        // --- Authentication Handling ---
-        const authStatusDiv = document.getElementById('auth-status');
-
-        onAuthStateChanged(auth, user => {
-            if (user) {
-                // User is signed in
-                userId = user.uid;
-                authStatusDiv.innerHTML = `
-                    <div class="flex items-center justify-center gap-2">
-                        <p class="text-sm font-semibold text-white/90">Welcome, ${user.phoneNumber}</p>
-                        <button id="logout-button" class="text-xs text-purple-200 hover:underline">(Logout)</button>
-                    </div>
-                `;
-                document.getElementById('logout-button').addEventListener('click', signOutUser);
-                
-                userDocRef = doc(db, "users", userId);
-                setupUsageListener();
-            } else {
-                // User is signed out
-                userId = null;
-                userDocRef = null;
-                authStatusDiv.innerHTML = `
-                    <div id="phone-login-container" class="flex flex-col items-center gap-2">
-                        <div id="phone-entry-container" class="w-full max-w-xs flex flex-col items-center gap-2">
-                            <p class="text-white/90 font-semibold text-sm mb-1">Login or Sign Up with your Phone</p>
-                            <input type="tel" id="phone-number" class="w-full p-2 border border-purple-200 rounded-lg text-center" placeholder="+91 12345 67890">
-                            <button id="send-otp-button" class="btn-primary font-semibold py-2 px-4 rounded-lg text-sm w-full">Send OTP</button>
-                        </div>
-                        <div id="recaptcha-container" class="mt-2"></div>
-                        <div id="otp-container" class="hidden w-full max-w-xs flex flex-col items-center gap-2">
-                            <input type="text" id="otp-input" class="w-full p-2 border border-purple-200 rounded-lg text-center" placeholder="Enter 6-digit OTP" autocomplete="one-time-code">
-                            <button id="verify-otp-button" class="btn-primary font-semibold py-2 px-4 rounded-lg text-sm w-full">Verify & Login</button>
-                        </div>
-                    </div>
-                `;
-                document.getElementById('send-otp-button').addEventListener('click', sendOtp);
-                document.getElementById('usage-tracker').classList.add('hidden');
-                setupRecaptcha();
-            }
-        });
-        
+        // --- Authentication Logic ---
         function setupRecaptcha() {
             window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
                 'size': 'invisible',
                 'callback': (response) => {
                     // reCAPTCHA solved, allow signInWithPhoneNumber.
+                    console.log("reCAPTCHA verified");
                 }
             });
         }
 
         async function sendOtp() {
-            const phoneNumber = document.getElementById('phone-number').value;
-            const sendOtpButton = document.getElementById('send-otp-button');
+            const phoneNumber = phoneNumberInput.value;
+            if (!phoneNumber || !/^\+[1-9]\d{1,14}$/.test(phoneNumber)) {
+                authStatus.textContent = 'Please enter a valid phone number with country code (e.g., +91).';
+                return;
+            }
+            
+            authStatus.textContent = 'Sending OTP...';
+            sendOtpBtn.disabled = true;
             const appVerifier = window.recaptchaVerifier;
 
-            sendOtpButton.disabled = true;
-            sendOtpButton.textContent = "Sending...";
-
             try {
-                const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
-                window.confirmationResult = confirmationResult;
-                
-                // Hide phone entry and show OTP entry
-                document.getElementById('phone-entry-container').classList.add('hidden');
-                document.getElementById('otp-container').classList.remove('hidden');
-                document.getElementById('verify-otp-button').addEventListener('click', verifyOtp);
-
+                confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
+                authStatus.textContent = 'OTP sent successfully!';
+                otpSection.classList.remove('hidden');
+                sendOtpBtn.textContent = 'Resend OTP';
             } catch (error) {
                 console.error("Error sending OTP:", error);
-                alert(`Error: ${error.message}`);
-                sendOtpButton.disabled = false;
-                sendOtpButton.textContent = "Send OTP";
-                // It's possible the verifier needs to be reset on error
-                if (window.recaptchaVerifier) {
-                    window.recaptchaVerifier.render().then(widgetId => {
-                         if(grecaptcha) grecaptcha.reset(widgetId);
-                    });
-                }
+                authStatus.textContent = `Error: ${error.message}`;
+                // Reset reCAPTCHA for retries
+                window.recaptchaVerifier.render().then(widgetId => {
+                    grecaptcha.reset(widgetId);
+                });
+            } finally {
+                sendOtpBtn.disabled = false;
             }
         }
 
         async function verifyOtp() {
-            const code = document.getElementById('otp-input').value;
-            const verifyButton = document.getElementById('verify-otp-button');
-            verifyButton.disabled = true;
-            verifyButton.textContent = "Verifying...";
+            const code = otpInput.value;
+            if (!code || code.length !== 6) {
+                authStatus.textContent = 'Please enter a valid 6-digit OTP.';
+                return;
+            }
+            
+            authStatus.textContent = 'Verifying...';
+            verifyOtpBtn.disabled = true;
 
             try {
-                await window.confirmationResult.confirm(code);
-                // onAuthStateChanged will handle successful login UI update
+                const result = await confirmationResult.confirm(code);
+                const user = result.user;
+                console.log("User signed in successfully:", user);
+                authStatus.textContent = 'Login successful!';
             } catch (error) {
                 console.error("Error verifying OTP:", error);
-                alert(`Error: ${error.message}`);
-                verifyButton.disabled = false;
-                verifyButton.textContent = "Verify & Login";
-            }
-        }
-
-        async function signOutUser() {
-            try {
-                await signOut(auth);
-                // onAuthStateChanged will handle UI cleanup
-            } catch (error) {
-                console.error("Sign out failed:", error);
-            }
-        }
-
-        // --- Database Listener ---
-        function setupUsageListener() {
-            onSnapshot(userDocRef, docSnap => {
-                const currentMonth = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
-                if (docSnap.exists() && docSnap.data().month === currentMonth) {
-                    usageCount = docSnap.data().usageCount || 0;
-                } else {
-                    usageCount = 0;
-                    if (!docSnap.exists()) {
-                         setDoc(userDocRef, { 
-                            usageCount: 0, 
-                            month: currentMonth,
-                            phoneNumber: auth.currentUser.phoneNumber,
-                        }, { merge: true });
-                    }
-                }
-                updateUsageUI();
-            });
-        }
-        
-        async function updateUsageCount(newCount) {
-            if (!userDocRef) return;
-            const currentMonth = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
-            await setDoc(userDocRef, { usageCount: newCount, month: currentMonth }, { merge: true });
-        }
-
-        function updateUsageUI() {
-             document.getElementById('usage-count').textContent = usageCount;
-             document.getElementById('usage-tracker').classList.remove('hidden');
-        }
-
-        // --- UI Logic (Tabs, Modals) ---
-        const tabsContainer = document.getElementById('tabs-container');
-        const mainContentContainer = document.getElementById('tab-content');
-        const upgradeModal = document.getElementById('upgradeModal');
-        const closeModal = document.getElementById('closeModal');
-        const upgradeButton = document.getElementById('upgrade-button');
-
-        function switchTab(activeTabId) {
-             // Hide all content panels first
-            mainContentContainer.querySelectorAll(':scope > div').forEach(panel => {
-                panel.classList.add('hidden');
-            });
-
-            // Show the active one
-            const activePanel = document.getElementById(`${activeTabId}-content`);
-            if (activePanel) {
-                activePanel.classList.remove('hidden');
-            }
-
-            // Update button styles
-            tabsContainer.querySelectorAll('button').forEach(button => {
-                const isButtonActive = button.dataset.tab === activeTabId;
-                button.classList.toggle('tab-active', isButtonActive);
-                button.classList.toggle('text-white', isButtonActive);
-                button.classList.toggle('text-purple-600', !isButtonActive);
-            });
-        }
-
-        function initializeTabs() {
-            tabsContainer.querySelectorAll('button').forEach(button => {
-                button.addEventListener('click', (event) => {
-                    switchTab(event.currentTarget.dataset.tab);
-                });
-            });
-            switchTab('meal-planner'); 
-        }
-        
-        initializeTabs();
-
-        upgradeButton.onclick = () => upgradeModal.style.display = "block";
-        closeModal.onclick = () => upgradeModal.style.display = "none";
-        window.onclick = e => { if (e.target == upgradeModal) upgradeModal.style.display = "none"; }
-
-        // --- Core Application Logic ---
-        document.getElementById('generate-meal-plan').addEventListener('click', () => handleGeneration('meal'));
-        document.getElementById('generate-festival-plan').addEventListener('click', () => handleGeneration('festival'));
-        document.getElementById('quick-cook').addEventListener('click', () => handleGeneration('quick-cook'));
-        document.getElementById('guest-menu').addEventListener('click', () => handleGeneration('guest-menu'));
-
-        function handleGeneration(type) {
-            if(!auth.currentUser) {
-                alert("Please log in to generate plans.");
-                return;
-            }
-            if (usageCount >= FREE_LIMIT) {
-                upgradeModal.style.display = 'block';
-                return;
-            }
-            const prompt = createPrompt(type);
-            callAI(prompt);
-            updateUsageCount(usageCount + 1);
-        }
-        
-        function createPrompt(type) {
-            document.getElementById('output-area').classList.remove('hidden');
-            document.getElementById('loader').classList.remove('hidden');
-            document.getElementById('result-content').innerHTML = '';
-            
-            switch(type) {
-                case 'meal': return `Generate a 7-day weekly meal plan for a family of ${document.getElementById('family-size').value}. Preferences: ${document.getElementById('diet-type').value}, ${document.getElementById('regional-taste').value} taste, ${document.getElementById('health-pref').value}. The response should be in ${document.getElementById('language').value}. Format it nicely with sections for Breakfast, Lunch, and Dinner each day. Include a consolidated grocery list at the end. Use markdown for formatting.`;
-                case 'festival': return `Create a comprehensive guide for the ${document.getElementById('festival-name').value} festival. Include: 1. A detailed Pooja Samagri checklist. 2. Creative decoration ideas. 3. Recipes for 3-4 traditional foods. 4. Three WhatsApp greeting templates (text only). Format the entire response clearly with headings using markdown.`;
-                case 'quick-cook': return `I need to cook today but I'm in a hurry. Suggest 5 different quick meal ideas that take under 30 minutes to prepare. Provide a one-line description for each. Use markdown for formatting.`;
-                case 'guest-menu': return `I have guests coming for dinner tonight. Suggest a full, impressive North Indian (Punjabi) vegetarian menu. Include 1 starter, 2 main course dishes, 1 dal, 1 raita, and 1 dessert. Also provide a consolidated grocery list for this menu. Use markdown for formatting.`;
-            }
-        }
-
-        async function callAI(prompt) {
-            console.log("Calling Gemini AI with prompt:", prompt);
-            const loader = document.getElementById('loader');
-            const resultDiv = document.getElementById('result-content');
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${GEMINI_API_KEY}`;
-
-            try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(`API Error: ${response.status} - ${errorData.error.message}`);
-                }
-
-                const data = await response.json();
-                const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-                if (aiText) {
-                    const formattedHtml = aiText
-                        .replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold text-purple-800 mt-4 mb-2">$1</h2>')
-                        .replace(/^### (.*$)/gim, '<h3 class="text-lg font-semibold text-purple-700 mt-3 mb-1">$1</h3>')
-                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                        .replace(/^\* (.*$)/gim, '<li>$1</li>')
-                        .replace(/(\n<li>.*<\/li>)+/g, '<ul>$&</ul>')
-                        .replace(/\n/g, '<br>');
-                    resultDiv.innerHTML = `<div class="prose max-w-none">${formattedHtml}</div>`;
-                } else {
-                    resultDiv.innerHTML = `<p class="text-red-500 font-semibold">Sorry, the AI could not generate a response. Please try again.</p>`;
-                }
-            } catch (error) {
-                console.error("Gemini API call failed:", error);
-                resultDiv.innerHTML = `<p class="text-red-500 font-semibold">An error occurred while contacting the AI. Your API key might be invalid or have restrictions. Please check the console for details.</p>`;
+                authStatus.textContent = `Error: Invalid OTP or session expired.`;
             } finally {
-                loader.classList.add('hidden');
-            }
-        }
-
-        // --- PayU Script Loading Logic (Dynamic) ---
-        const paymentStatusContainer = document.getElementById('payment-status-container');
-        const paymentStatusText = document.getElementById('payment-status-text');
-        const retryPaymentButton = document.getElementById('retry-payment-button');
-
-        function enablePaymentButtons() {
-            document.querySelectorAll('#subscribe-now, #buy-tiffin-pack, #buy-navratri-pack').forEach(button => {
-                button.disabled = false;
-            });
-            console.log("PayU is ready. Payment buttons enabled.");
-        }
-
-        function loadPayuScript() {
-            // Reset UI for loading attempt
-            paymentStatusText.textContent = "Initializing Payment Gateway...";
-            paymentStatusText.classList.remove('text-red-300');
-            paymentStatusText.classList.add('text-yellow-300');
-            paymentStatusContainer.classList.remove('hidden');
-            retryPaymentButton.classList.add('hidden');
-            
-            // Check if script already exists to avoid duplicates on retry
-            const existingScript = document.querySelector('script[src="https://checkout.payu.in/_payment.sjs"]');
-            if(existingScript) {
-                existingScript.remove();
-            }
-
-            const script = document.createElement('script');
-            script.src = "https://checkout.payu.in/_payment.sjs";
-            
-            script.onload = () => {
-                console.log("PayU script loaded successfully.");
-                isPayuReady = true;
-                enablePaymentButtons();
-                paymentStatusContainer.classList.add('hidden');
-            };
-            
-            script.onerror = () => {
-                console.error("PayU script failed to load. Please check network connection and ad-blockers.");
-                isPayuReady = false;
-                paymentStatusText.textContent = "⚠️ Payment Gateway failed to load.";
-                paymentStatusText.classList.remove('text-yellow-300');
-                paymentStatusText.classList.add('text-red-300');
-                retryPaymentButton.classList.remove('hidden');
-            };
-            
-            document.head.appendChild(script);
-        }
-
-        window.addEventListener('load', () => {
-            loadPayuScript();
-            retryPaymentButton.addEventListener('click', loadPayuScript);
-        });
-
-        // --- Reusable PayU Payment Logic ---
-        async function initiatePayment(details, buttonElement) {
-            if (!isPayuReady) {
-                console.error("Attempted to initiate payment, but PayU is not ready.");
-                return;
-            }
-
-            if (!userId) { 
-                alert("Please log in to make a payment."); 
-                return; 
-            }
-            
-            const paymentDetails = {
-                ...details,
-                firstname: "User",
-                email: "user@example.com",
-                phone: auth.currentUser.phoneNumber,
-                txnid: "TXN" + Date.now()
-            };
-
-            const originalButtonText = buttonElement.textContent;
-            buttonElement.disabled = true;
-            buttonElement.textContent = "Processing...";
-
-            try {
-                const response = await fetch(functionUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(paymentDetails),
-                });
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Server responded with ${response.status}: ${errorText}`);
-                }
-
-                const { hash, key } = await response.json();
-
-                const paymentData = { ...paymentDetails, key, hash, ...payuConfig };
-                payu.launch(paymentData);
-                
-                setTimeout(() => {
-                    buttonElement.disabled = false;
-                    buttonElement.textContent = originalButtonText;
-                }, 3000);
-
-            } catch (error) {
-                console.error("Payment initiation failed:", error);
-                alert(`Could not start payment.\n\nDetails: ${error.message}`);
-                buttonElement.disabled = false;
-                buttonElement.textContent = originalButtonText;
+                verifyOtpBtn.disabled = false;
             }
         }
         
-        // --- Event Listeners for all Payment Buttons ---
-        document.getElementById('subscribe-now').addEventListener('click', (e) => {
-            initiatePayment({
-                amount: "99.00",
-                productinfo: "AI Meal Planner Premium (Monthly)"
-            }, e.target);
-        });
+        // --- PayUmoney Integration ---
+        function handlePayment() {
+            // --- IMPORTANT SECURITY WARNING ---
+            // The following logic generates the transaction hash on the client-side.
+            // This is **NOT SECURE** and is for demonstration purposes only.
+            // In a production environment, the `salt` should NEVER be exposed in client-side code.
+            // You MUST generate the hash on a secure server (like a Firebase Cloud Function or your own backend)
+            // and send it to the client.
+            
+            // --- REPLACE WITH YOUR PAYUMONEY TEST CREDENTIALS ---
+            const payUDetails = {
+                key: "YOUR_MERCHANT_KEY", // Replace with your test key
+                salt: "YOUR_MERCHANT_SALT", // Replace with your test salt
+                paymentUrl: "https://test.payu.in/_payment"
+            };
 
-        document.getElementById('buy-tiffin-pack').addEventListener('click', (e) => {
-            initiatePayment({
-                amount: "99.00",
-                productinfo: "Kids' Tiffin Box AI Planner Pack"
-            }, e.target);
-        });
+            if (payUDetails.key === "YOUR_MERCHANT_KEY" || payUDetails.salt === "YOUR_MERCHANT_SALT") {
+                 alert("Please replace placeholder PayUmoney credentials in the code.");
+                 return;
+            }
 
-        document.getElementById('buy-navratri-pack').addEventListener('click', (e) => {
-            initiatePayment({
-                amount: "49.00",
-                productinfo: "Navratri Special Diet Plan Pack"
-            }, e.target);
+            const currentUser = auth.currentUser;
+            if (!currentUser) {
+                alert("You must be logged in to make a payment.");
+                return;
+            }
+
+            // Transaction Details
+            const transactionData = {
+                txnid: `AI-TOOL-${Date.now()}`,
+                amount: '10.00',
+                productinfo: 'AI Tool Premium Access',
+                firstname: 'Test', // You can collect this from the user
+                email: 'test@example.com', // You can collect this from the user
+                phone: currentUser.phoneNumber.substring(3), // Assuming Indian number, remove +91
+                surl: 'https://your-domain.com/payment-success', // Your success URL
+                furl: 'https://your-domain.com/payment-failure', // Your failure URL
+            };
+
+            // Construct the hash string in the required format
+            const hashString = `${payUDetails.key}|${transactionData.txnid}|${transactionData.amount}|${transactionData.productinfo}|${transactionData.firstname}|${transactionData.email}|||||||||||${payUDetails.salt}`;
+            const hash = sha512(hashString);
+
+            // Populate form data
+            const formData = {
+                ...transactionData,
+                key: payUDetails.key,
+                hash: hash,
+                // Optional params can be added here
+            };
+
+            // Dynamically create and submit the form
+            const form = document.getElementById('payment-form');
+            form.action = payUDetails.paymentUrl;
+            form.innerHTML = ''; // Clear previous fields
+            
+            for (const key in formData) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = formData[key];
+                form.appendChild(input);
+            }
+
+            console.log("Submitting payment form with data:", formData);
+            form.submit();
+        }
+
+        // --- Event Listeners and State Management ---
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // User is signed in
+                loginSection.classList.add('hidden');
+                appSection.classList.remove('hidden');
+                userInfo.textContent = `Logged in as ${user.phoneNumber}`;
+            } else {
+                // User is signed out
+                loginSection.classList.remove('hidden');
+                appSection.classList.add('hidden');
+                userInfo.textContent = '';
+                otpSection.classList.add('hidden');
+                otpInput.value = '';
+                phoneNumberInput.value = '';
+                authStatus.textContent = '';
+            }
         });
+        
+        window.onload = () => {
+             setupRecaptcha();
+        };
+
+        sendOtpBtn.addEventListener('click', sendOtp);
+        verifyOtpBtn.addEventListener('click', verifyOtp);
+        logoutBtn.addEventListener('click', () => signOut(auth));
+        buyNowBtn.addEventListener('click', handlePayment);
+
     </script>
+
 </body>
 </html>
-
