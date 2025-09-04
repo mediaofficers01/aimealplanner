@@ -69,10 +69,15 @@
         import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         
         // --- Firebase Configuration ---
-        // Canvas will provide this configuration object.
-        const firebaseConfig = typeof __firebase_config !== 'undefined' 
-            ? JSON.parse(__firebase_config) 
-            : { apiKey: "YOUR_API_KEY", authDomain: "YOUR_AUTH_DOMAIN", projectId: "YOUR_PROJECT_ID" };
+        const firebaseConfig = {
+            apiKey: "AIzaSyAUoU9RFUJi56rYHERq8zOrl1qQBB5KQSM",
+            authDomain: "mymealplannerapp-615f7.firebaseapp.com",
+            projectId: "mymealplannerapp-615f7",
+            storageBucket: "mymealplannerapp-615f7.firebasestorage.app",
+            messagingSenderId: "653426216828",
+            appId: "1:653426216828:web:a54158b674dfd72cf71ef9",
+            measurementId: "G-07NH5QZWYJ"
+        };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -170,7 +175,7 @@
                 paymentUrl: "https://test.payu.in/_payment"
             };
 
-            if (payUDetails.key === "8z5rZQDi" || payUDetails.salt === "IsygW4nDGh") {
+            if (payUDetails.key === "YOUR_MERCHANT_KEY" || payUDetails.salt === "YOUR_MERCHANT_SALT") {
                  alert("Please replace placeholder PayUmoney credentials in the code.");
                  return;
             }
@@ -254,3 +259,4 @@
 
 </body>
 </html>
+
