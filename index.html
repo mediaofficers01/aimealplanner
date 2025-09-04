@@ -361,10 +361,11 @@
                 amount: amount, productinfo: productInfo, firstname: 'AI User', email: 'test@example.com',
                 phone: currentUser.phoneNumber.substring(3),
                 surl: functionUrl, furl: functionUrl,
-                udf1: currentUser.uid, // Sending Firebase UID to identify the user
+                udf1: currentUser.uid, udf2: '', udf3: '', udf4: '', udf5: '',
             };
 
-            const hashString = `${payUDetails.key}|${transactionData.txnid}|${transactionData.amount}|${transactionData.productinfo}|${transactionData.firstname}|${transactionData.email}|${transactionData.udf1}|||||||||${salt}`;
+            // **FIX**: The hash string for the initial payment request MUST include all udf fields.
+            const hashString = `${payUDetails.key}|${transactionData.txnid}|${transactionData.amount}|${transactionData.productinfo}|${transactionData.firstname}|${transactionData.email}|${transactionData.udf1}|${transactionData.udf2}|${transactionData.udf3}|${transactionData.udf4}|${transactionData.udf5}||||||${salt}`;
             const formData = { ...transactionData, key: payUDetails.key, hash: sha512(hashString) };
             
             const form = document.getElementById('payment-form');
@@ -408,7 +409,6 @@
             if (status === 'success' && product) {
                 const decodedProduct = decodeURIComponent(product);
                 
-                // Manually refresh user data from Firestore to get the latest state
                 await getUserData(userId);
 
                 paymentStatus.textContent = `Successfully purchased ${decodedProduct}!`;
