@@ -324,25 +324,17 @@
                 generateButton.classList.add('hidden');
                 expiryInfo.classList.add('hidden');
 
-                if (purchaseData) {
-                    // New format with validity
-                    if (typeof purchaseData === 'object' && purchaseData.purchaseDate) {
-                        const purchaseDate = purchaseData.purchaseDate.toDate();
-                        const expiryDate = new Date(purchaseDate);
-                        expiryDate.setFullYear(expiryDate.getFullYear() + 1);
-                        
-                        if (new Date() < expiryDate) { // If not expired
-                            buyButton.classList.add('hidden');
-                            generateButton.classList.remove('hidden');
-                            expiryInfo.textContent = `Expires on: ${expiryDate.toLocaleDateString()}`;
-                            expiryInfo.classList.remove('hidden');
-                        }
-                    } 
-                    // Old format without validity (legacy users)
-                    else if (purchaseData === true) {
+                // **FIX**: Only check for the new format with a purchaseDate.
+                // This removes lifetime access for old purchase formats.
+                if (purchaseData && typeof purchaseData === 'object' && purchaseData.purchaseDate) {
+                    const purchaseDate = purchaseData.purchaseDate.toDate();
+                    const expiryDate = new Date(purchaseDate);
+                    expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+                    
+                    if (new Date() < expiryDate) { // If not expired
                         buyButton.classList.add('hidden');
                         generateButton.classList.remove('hidden');
-                        expiryInfo.textContent = `Plan is Active (Lifetime)`;
+                        expiryInfo.textContent = `Expires on: ${expiryDate.toLocaleDateString()}`;
                         expiryInfo.classList.remove('hidden');
                     }
                 }
