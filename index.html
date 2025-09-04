@@ -293,7 +293,6 @@
                 unlockUsesCard.classList.remove('hidden');
                 allGenerateBtns.forEach(btn => {
                     btn.disabled = true;
-                    // **FIX**: Change button text to be less confusing.
                     btn.textContent = "Out of Uses";
                     btn.classList.remove('generate-btn');
                     btn.classList.add('bg-gray-400', 'cursor-not-allowed');
@@ -320,26 +319,32 @@
 
                 const purchaseData = userPurchases[product];
 
-                if (purchaseData && purchaseData.purchaseDate) {
-                    const purchaseDate = purchaseData.purchaseDate.toDate();
-                    const expiryDate = new Date(purchaseDate);
-                    expiryDate.setFullYear(expiryDate.getFullYear() + 1);
-                    const isExpired = new Date() > expiryDate;
+                // Default state
+                buyButton.classList.remove('hidden');
+                generateButton.classList.add('hidden');
+                expiryInfo.classList.add('hidden');
 
-                    if (!isExpired) {
+                if (purchaseData) {
+                    // New format with validity
+                    if (typeof purchaseData === 'object' && purchaseData.purchaseDate) {
+                        const purchaseDate = purchaseData.purchaseDate.toDate();
+                        const expiryDate = new Date(purchaseDate);
+                        expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+                        
+                        if (new Date() < expiryDate) { // If not expired
+                            buyButton.classList.add('hidden');
+                            generateButton.classList.remove('hidden');
+                            expiryInfo.textContent = `Expires on: ${expiryDate.toLocaleDateString()}`;
+                            expiryInfo.classList.remove('hidden');
+                        }
+                    } 
+                    // Old format without validity (legacy users)
+                    else if (purchaseData === true) {
                         buyButton.classList.add('hidden');
                         generateButton.classList.remove('hidden');
-                        expiryInfo.textContent = `Expires on: ${expiryDate.toLocaleDateString()}`;
+                        expiryInfo.textContent = `Plan is Active (Lifetime)`;
                         expiryInfo.classList.remove('hidden');
-                    } else {
-                        buyButton.classList.remove('hidden');
-                        generateButton.classList.add('hidden');
-                        expiryInfo.classList.add('hidden');
                     }
-                } else {
-                    buyButton.classList.remove('hidden');
-                    generateButton.classList.add('hidden');
-                    expiryInfo.classList.add('hidden');
                 }
             });
         }
