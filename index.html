@@ -366,7 +366,7 @@
                 udf1: currentUser.uid, // Sending Firebase UID to identify the user
             };
 
-            const hashString = `${payUDetails.key}|${transactionData.txnid}|${transactionData.amount}|${transactionData.productinfo}|${transactionData.firstname}|${transactionData.email}|${transactionData.udf1}|||||||||${salt}`;
+            const hashString = `${payUDetails.key}|${transactionData.txnid}|${transactionData.amount}|${transactionData.productinfo}|${transactionData.firstname}|${transactionData.email}|${transactionData.udf1}||||||||||${salt}`;
             const formData = { ...transactionData, key: payUDetails.key, hash: sha512(hashString) };
             
             const form = document.getElementById('payment-form');
