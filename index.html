@@ -293,7 +293,8 @@
                 unlockUsesCard.classList.remove('hidden');
                 allGenerateBtns.forEach(btn => {
                     btn.disabled = true;
-                    btn.textContent = "Upgrade to Continue";
+                    // **FIX**: Change button text to be less confusing.
+                    btn.textContent = "Out of Uses";
                     btn.classList.remove('generate-btn');
                     btn.classList.add('bg-gray-400', 'cursor-not-allowed');
                 });
@@ -528,3 +529,4 @@
     </script>
 </body>
 </html>
+
