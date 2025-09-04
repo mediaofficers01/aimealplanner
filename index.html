@@ -367,7 +367,11 @@
         // --- Main App Logic ---
         function generatePlan(prompt) {
             if (!auth.currentUser) { loginModalOverlay.classList.remove('hidden'); return; }
-            if (usageCount >= FREE_USES_LIMIT) { alert("You have used all your free plans."); return; }
+            if (usageCount >= FREE_USES_LIMIT) { 
+                paymentStatus.textContent = "You have used all your free plans. Please purchase a premium pack to continue.";
+                setTimeout(() => paymentStatus.textContent = '', 5000);
+                return;
+            }
             
             const mockResponse = `Based on your request for "${prompt}", here is a sample plan:\n\n**Day 1:**\n- Breakfast: Poha\n- Lunch: Rajma Chawal\n- Dinner: Paneer Butter Masala with Roti.\n\n**Day 2:**\n- Breakfast: Idli Sambar\n- Lunch: Lemon Rice with Curd\n- Dinner: Aloo Gobi with Paratha.`;
             planOutput.textContent = mockResponse;
