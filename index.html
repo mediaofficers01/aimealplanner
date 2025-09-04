@@ -76,7 +76,7 @@
             projectId: "mymealplannerapp-615f7",
             storageBucket: "mymealplannerapp-615f7.firebasestorage.app",
             messagingSenderId: "653426216828",
-            appId: "1:653426216828:web:a"
+            appId: "1:653426216828:web:a54158b674dfd72cf71ef9" // Corrected full App ID
         };
 
         const app = initializeApp(firebaseConfig);
@@ -170,17 +170,12 @@
             // You MUST generate the hash on a secure server (like a Firebase Cloud Function or your own backend)
             // and send it to the client.
             
-            // --- REPLACE WITH YOUR PAYUMONEY LIVE CREDENTIALS ---
+            // --- Your PayUmoney Live Credentials ---
             const payUDetails = {
-                key: "8z5rZQDi", // Replace with your live key
-                salt: "IsygW4nDGh", // Replace with your live salt
+                key: "8z5rZQDi",
+                salt: "IsygW4nDGh",
                 paymentUrl: "https://secure.payu.in/_payment" // PRODUCTION URL
             };
-
-            if (payUDetails.key === "YOUR_MERCHANT_KEY" || payUDetails.salt === "YOUR_MERCHANT_SALT") {
-                 paymentStatus.textContent = "Please replace placeholder PayUmoney credentials in the code.";
-                 return;
-            }
 
             const currentUser = auth.currentUser;
             if (!currentUser) {
