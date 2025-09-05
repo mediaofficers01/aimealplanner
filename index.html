@@ -44,6 +44,19 @@
         .generate-btn {
             background-image: linear-gradient(to right, #8b5cf6, #ec4899);
         }
+        /* Spinner Animation */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #7c3aed;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
@@ -92,7 +105,10 @@
                             <option>English</option> <option>Hinglish</option>
                         </select>
                     </div>
-                    <button id="generate-plan-btn" class="generate-btn mt-6 w-full text-white font-bold py-3.5 px-4 rounded-lg hover:opacity-90 transition-opacity duration-300">Generate Weekly Meal Plan</button>
+                    <button id="generate-plan-btn" class="generate-btn mt-6 w-full text-white font-bold py-3.5 px-4 rounded-lg hover:opacity-90 transition-opacity duration-300 flex items-center justify-center space-x-2">
+                        <span class="btn-text">Generate Weekly Meal Plan</span>
+                        <div class="loader hidden"></div>
+                    </button>
                 </div>
 
                 <!-- Festival Assistant Content -->
@@ -102,7 +118,10 @@
                          <select id="festival-select" class="w-full max-w-sm mx-auto p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
                              <option>Diwali</option> <option>Holi</option> <option>Eid</option> <option>Navratri</option> <option>Ganesh Chaturthi</option> <option>Pongal</option>
                          </select>
-                         <button id="generate-festival-btn" class="generate-btn mt-4 w-full max-w-sm mx-auto text-white font-bold py-3.5 px-4 rounded-lg hover:opacity-90 transition-opacity duration-300">Generate Festival Plan</button>
+                         <button id="generate-festival-btn" class="generate-btn mt-4 w-full max-w-sm mx-auto text-white font-bold py-3.5 px-4 rounded-lg hover:opacity-90 transition-opacity duration-300 flex items-center justify-center space-x-2">
+                            <span class="btn-text">Generate Festival Plan</span>
+                            <div class="loader hidden"></div>
+                        </button>
                     </div>
                 </div>
 
@@ -110,7 +129,10 @@
                 <div id="quick-mode-content" class="hidden text-center">
                     <h3 class="text-2xl font-bold text-gray-800 mb-4">Get a Quick Meal Idea</h3>
                     <p class="text-gray-600 mb-4">Instantly generate a random meal plan for today.</p>
-                    <button id="generate-quick-btn" class="generate-btn mt-4 w-full max-w-sm mx-auto text-white font-bold py-3.5 px-4 rounded-lg hover:opacity-90 transition-opacity duration-300">Generate Quick Plan</button>
+                    <button id="generate-quick-btn" class="generate-btn mt-4 w-full max-w-sm mx-auto text-white font-bold py-3.5 px-4 rounded-lg hover:opacity-90 transition-opacity duration-300 flex items-center justify-center space-x-2">
+                        <span class="btn-text">Generate Quick Plan</span>
+                        <div class="loader hidden"></div>
+                    </button>
                 </div>
             </div>
              <p id="usage-count-info" class="text-xs text-center text-gray-500 mt-4">Log in to track your uses.</p>
@@ -145,7 +167,10 @@
                         <p class="text-gray-600 text-sm my-2">Endless, healthy, and fun ideas for your child's tiffin box.</p>
                         <div class="mt-4">
                             <button class="buy-premium-btn w-full bg-pink-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-pink-600 transition duration-300" data-amount="99.00" data-product="Kids Tiffin Box AI Planner">Buy Now for ₹99</button>
-                            <button class="generate-premium-plan-btn hidden w-full generate-btn text-white font-bold py-2 px-4 rounded-lg" data-product-prompt="a week of healthy and fun tiffin box ideas for a child">Generate Tiffin Plan</button>
+                            <button class="generate-premium-plan-btn hidden w-full generate-btn text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center space-x-2" data-product-prompt="a week of healthy and fun tiffin box ideas for a child">
+                                <span class="btn-text">Generate Tiffin Plan</span>
+                                <div class="loader hidden"></div>
+                            </button>
                             <p class="expiry-date-info text-xs text-green-700 font-semibold mt-2 hidden"></p>
                         </div>
                     </div>
@@ -158,7 +183,10 @@
                         <p class="text-gray-600 text-sm my-2">Complete 9-day Satvik meal plan for Navratri fasting.</p>
                         <div class="mt-4">
                             <button class="buy-premium-btn w-full bg-orange-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-orange-600 transition duration-300" data-amount="49.00" data-product="Navratri Special Diet Plan">Buy Now for ₹49</button>
-                             <button class="generate-premium-plan-btn hidden w-full generate-btn text-white font-bold py-2 px-4 rounded-lg" data-product-prompt="a complete 9-day Satvik meal plan for Navratri fasting">Generate Navratri Plan</button>
+                             <button class="generate-premium-plan-btn hidden w-full generate-btn text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center space-x-2" data-product-prompt="a complete 9-day Satvik meal plan for Navratri fasting">
+                                <span class="btn-text">Generate Navratri Plan</span>
+                                <div class="loader hidden"></div>
+                            </button>
                              <p class="expiry-date-info text-xs text-green-700 font-semibold mt-2 hidden"></p>
                         </div>
                     </div>
@@ -293,7 +321,7 @@
                 unlockUsesCard.classList.remove('hidden');
                 allGenerateBtns.forEach(btn => {
                     btn.disabled = true;
-                    btn.textContent = "Out of Uses";
+                    btn.querySelector('.btn-text').textContent = "Out of Uses";
                     btn.classList.remove('generate-btn');
                     btn.classList.add('bg-gray-400', 'cursor-not-allowed');
                 });
@@ -304,9 +332,9 @@
                     btn.classList.add('generate-btn');
                     btn.classList.remove('bg-gray-400', 'cursor-not-allowed');
                 });
-                generatePlanBtn.textContent = "Generate Weekly Meal Plan";
-                generateFestivalBtn.textContent = "Generate Festival Plan";
-                generateQuickBtn.textContent = "Generate Quick Plan";
+                generatePlanBtn.querySelector('.btn-text').textContent = "Generate Weekly Meal Plan";
+                generateFestivalBtn.querySelector('.btn-text').textContent = "Generate Festival Plan";
+                generateQuickBtn.querySelector('.btn-text').textContent = "Generate Quick Plan";
             }
         }
 
@@ -319,19 +347,16 @@
 
                 const purchaseData = userPurchases[product];
 
-                // Default state
                 buyButton.classList.remove('hidden');
                 generateButton.classList.add('hidden');
                 expiryInfo.classList.add('hidden');
 
-                // **FIX**: Only check for the new format with a purchaseDate.
-                // This removes lifetime access for old purchase formats.
                 if (purchaseData && typeof purchaseData === 'object' && purchaseData.purchaseDate) {
                     const purchaseDate = purchaseData.purchaseDate.toDate();
                     const expiryDate = new Date(purchaseDate);
                     expiryDate.setFullYear(expiryDate.getFullYear() + 1);
                     
-                    if (new Date() < expiryDate) { // If not expired
+                    if (new Date() < expiryDate) { 
                         buyButton.classList.add('hidden');
                         generateButton.classList.remove('hidden');
                         expiryInfo.textContent = `Expires on: ${expiryDate.toLocaleDateString()}`;
@@ -404,8 +429,8 @@
             form.submit();
         }
 
-        // --- Main App Logic ---
-        function generatePlan(prompt, isPremium = false) {
+        // --- Gemini API Logic ---
+        async function generatePlan(prompt, isPremium = false, callingButton) {
             if (!auth.currentUser) {
                 loginModalOverlay.classList.remove('hidden');
                 return;
@@ -419,13 +444,57 @@
                     return;
                 }
             }
-            
-            const mockResponse = `Based on your request for "${prompt}", here is a sample plan:\n\n**Day 1:**\n- Breakfast: Poha\n- Lunch: Rajma Chawal\n- Dinner: Paneer Butter Masala with Roti.\n\n**Day 2:**\n- Breakfast: Idli Sambar\n- Lunch: Lemon Rice with Curd\n- Dinner: Aloo Gobi with Paratha.`;
-            planOutput.textContent = mockResponse;
+
+            // --- Show Loading State ---
+            const buttonText = callingButton.querySelector('.btn-text');
+            const loader = callingButton.querySelector('.loader');
+            const originalButtonText = buttonText.textContent;
+
+            buttonText.textContent = 'Generating...';
+            loader.classList.remove('hidden');
+            callingButton.disabled = true;
+            planOutput.textContent = '🤖 Generating your AI-powered plan, please wait...';
             planOutputContainer.classList.remove('hidden');
 
-            if (!isPremium) {
-                updateUserUsageCount(auth.currentUser.uid);
+            const systemPrompt = "You are an expert meal planner for Indian families. Create a structured, easy-to-read meal plan based on the user's request. Format the output clearly with headings for each day (e.g., **Day 1**, **Day 2**) and sub-headings for meals (e.g., - Breakfast:, - Lunch:, - Dinner:).";
+            const userQuery = `Generate a meal plan based on these details: ${prompt}`;
+            const apiKey = ""; 
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: userQuery }] }],
+                        systemInstruction: { parts: [{ text: systemPrompt }] },
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                const generatedText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                
+                if (generatedText) {
+                    planOutput.textContent = generatedText;
+                    if (!isPremium) {
+                        updateUserUsageCount(auth.currentUser.uid);
+                    }
+                } else {
+                     planOutput.textContent = "Sorry, the AI could not generate a plan at this time. Please try again.";
+                }
+
+            } catch (error) {
+                console.error("Gemini API call failed:", error);
+                planOutput.textContent = "An error occurred while generating your plan. Please check your connection and try again.";
+            } finally {
+                // --- Hide Loading State ---
+                buttonText.textContent = originalButtonText;
+                loader.classList.add('hidden');
+                callingButton.disabled = false;
             }
         }
 
@@ -484,7 +553,7 @@
         verifyOtpBtn.addEventListener('click', verifyOtp);
         logoutBtn.addEventListener('click', () => signOut(auth));
         
-        generatePlanBtn.addEventListener('click', () => {
+        generatePlanBtn.addEventListener('click', (e) => {
             const familySizeInput = document.getElementById('family-size');
             if (!familySizeInput.value || parseInt(familySizeInput.value) <= 0) {
                 paymentStatus.textContent = "Please enter a valid family size.";
@@ -495,16 +564,16 @@
             const inputs = mealPlannerContent.querySelectorAll('input, select');
             let details = [];
             inputs.forEach(input => details.push(input.value));
-            generatePlan(`a ${details.join(', ')} meal plan`);
+            generatePlan(`a ${details.join(', ')} meal plan`, false, e.currentTarget);
         });
 
-        generateFestivalBtn.addEventListener('click', () => {
+        generateFestivalBtn.addEventListener('click', (e) => {
             const festival = document.getElementById('festival-select').value;
-            generatePlan(`a meal plan for the ${festival} festival`);
+            generatePlan(`a meal plan for the ${festival} festival`, false, e.currentTarget);
         });
 
-        generateQuickBtn.addEventListener('click', () => {
-            generatePlan('a quick and random meal plan for today');
+        generateQuickBtn.addEventListener('click', (e) => {
+            generatePlan('a quick and random meal plan for today', false, e.currentTarget);
         });
 
         document.querySelectorAll('.buy-premium-btn').forEach(button => {
@@ -513,7 +582,7 @@
 
         document.querySelectorAll('.generate-premium-plan-btn').forEach(button => {
             button.addEventListener('click', (e) => {
-                generatePlan(e.target.dataset.productPrompt, true);
+                generatePlan(e.target.dataset.productPrompt, true, e.currentTarget);
             });
         });
 
