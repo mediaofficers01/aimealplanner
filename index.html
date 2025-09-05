@@ -174,8 +174,31 @@
 
             <!-- Output Area -->
              <div id="plan-output-container" class="mt-6 hidden">
+                <div class="flex justify-between items-center mb-2">
+                    <h4 class="font-semibold text-lg text-gray-700">Your AI Generated Plan:</h4>
+                    <div class="share-buttons flex space-x-2">
+                        <button class="share-whatsapp-btn bg-green-500 text-white font-semibold py-1 px-3 rounded-lg hover:bg-green-600 transition duration-300 text-sm flex items-center space-x-1.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12a10 10 0 1 0-20 0 10 10 0 0 0 10 10z"/><path d="m10 10-2 2 2 2"/><path d="m14 14 2-2-2-2"/></svg>
+                            <span>WhatsApp</span>
+                        </button>
+                         <button class="share-email-btn bg-blue-500 text-white font-semibold py-1 px-3 rounded-lg hover:bg-blue-600 transition duration-300 text-sm flex items-center space-x-1.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                            <span>Email</span>
+                        </button>
+                    </div>
+                </div>
                 <div id="plan-output" class="plan-output"></div>
-             </div>
+                 <div class="share-buttons flex space-x-2 justify-end mt-4">
+                    <button class="share-whatsapp-btn bg-green-500 text-white font-semibold py-1 px-3 rounded-lg hover:bg-green-600 transition duration-300 text-sm flex items-center space-x-1.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12a10 10 0 1 0-20 0 10 10 0 0 0 10 10z"/><path d="m10 10-2 2 2 2"/><path d="m14 14 2-2-2-2"/></svg>
+                        <span>WhatsApp</span>
+                    </button>
+                     <button class="share-email-btn bg-blue-500 text-white font-semibold py-1 px-3 rounded-lg hover:bg-blue-600 transition duration-300 text-sm flex items-center space-x-1.5">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                        <span>Email</span>
+                    </button>
+                </div>
+            </div>
 
             <!-- Footer / Premium Packs -->
             <div class="mt-8 pt-6 border-t border-gray-200">
@@ -550,7 +573,6 @@
                 }
             }
             
-            // **FIX**: Hide all tab content before showing the main output
             contents.forEach(content => content.classList.add('hidden'));
             planOutputContainer.classList.remove('hidden');
             
@@ -569,9 +591,23 @@
                 const result = await generatePlanAICallable({ prompt: prompt });
                 
                 const generatedText = result.data.plan;
-                planOutput.innerHTML = simpleMarkdownToHtml(generatedText);
-                document.querySelectorAll('#plan-output-container .share-buttons').forEach(el => el.classList.remove('hidden'));
-
+                planOutput.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <h4 class="font-semibold text-lg text-gray-700">Your AI Generated Plan:</h4>
+                        <div class="share-buttons flex space-x-2">
+                           <button class="share-whatsapp-btn bg-green-500 text-white font-semibold py-1 px-3 rounded-lg hover:bg-green-600 text-sm flex items-center space-x-1.5" data-plan-text="${encodeURIComponent(generatedText)}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12a10 10 0 1 0-20 0 10 10 0 0 0 10 10z"/><path d="m10 10-2 2 2 2"/><path d="m14 14 2-2-2-2"/></svg>
+                                <span>WhatsApp</span>
+                            </button>
+                            <button class="share-email-btn bg-blue-500 text-white font-semibold py-1 px-3 rounded-lg hover:bg-blue-600 text-sm flex items-center space-x-1.5" data-plan-text="${encodeURIComponent(generatedText)}" data-prompt="${encodeURIComponent(prompt)}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                                <span>Email</span>
+                            </button>
+                        </div>
+                    </div>
+                    ${simpleMarkdownToHtml(generatedText)}
+                `;
+                
                 await savePlanToHistory(auth.currentUser.uid, prompt, generatedText);
 
                 if (!isPremium) {
@@ -583,7 +619,7 @@
                 if (error.code && error.message) {
                     errorMessage = `Error: ${error.message}`;
                 }
-                planOutput.textContent = errorMessage;
+                planOutput.innerHTML = `<p>${errorMessage}</p>`;
             } finally {
                 buttonText.textContent = originalButtonText;
                 loader.classList.add('hidden');
@@ -710,28 +746,15 @@
             const emailBtn = e.target.closest('.share-email-btn');
 
             if (whatsappBtn) {
-                let planText;
-                const historyDisplayButton = whatsappBtn.closest('[data-plan-text]');
-                if(historyDisplayButton) {
-                    planText = decodeURIComponent(historyDisplayButton.dataset.planText);
-                } else {
-                    planText = planOutput.innerText;
-                }
+                let planText = decodeURIComponent(whatsappBtn.dataset.planText);
                 const shareText = `Check out this AI Plan generated for me on ${new Date().toLocaleString()}:\n\n${planText}`;
                 const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
                 window.open(whatsappUrl, '_blank');
             }
 
             if (emailBtn) {
-                let planText, promptText;
-                 const historyDisplayButton = emailBtn.closest('[data-plan-text]');
-                 if(historyDisplayButton){
-                     planText = decodeURIComponent(historyDisplayButton.dataset.planText);
-                     promptText = decodeURIComponent(historyDisplayButton.dataset.prompt);
-                 } else {
-                     planText = planOutput.innerText;
-                     promptText = "My AI Generated Meal Plan";
-                 }
+                let planText = decodeURIComponent(emailBtn.dataset.planText);
+                let promptText = decodeURIComponent(emailBtn.dataset.prompt);
                 const subject = promptText;
                 const body = `Check out this AI Plan generated for me on ${new Date().toLocaleString()}:\n\n${planText}`;
                 const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
