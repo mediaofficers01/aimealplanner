@@ -26,6 +26,8 @@
         .plan-output strong { font-weight: 600; }
         .plan-output ul { list-style-type: disc; padding-left: 1.5rem; }
         .plan-output li { margin-bottom: 0.25rem; }
+        .plan-output hr { margin-top: 1rem; margin-bottom: 1rem; border-color: #d1d5db; }
+
 
         #close-login-modal {
             font-size: 2rem;
@@ -62,6 +64,20 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        /* History Styles */
+        #history-list .history-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        #history-list .history-item:hover {
+            background-color: #f9fafb;
+        }
+        #history-list .history-item.active {
+            background-color: #ede9fe;
+            border-right: 3px solid #7c3aed;
+        }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
@@ -74,22 +90,22 @@
         </div>
 
         <!-- Main Content Area -->
-        <div class="bg-white/70 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-lg p-6">
+        <div class="bg-white/70 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-lg p-4 sm:p-6">
             <!-- Tab Navigation -->
-            <div class="flex justify-center bg-purple-100/50 rounded-xl p-1.5 space-x-2">
-                <button id="meal-planner-tab-btn" class="tab-btn active w-full py-2.5 px-4 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center space-x-2">
+            <div class="flex flex-wrap justify-center bg-purple-100/50 rounded-xl p-1.5 gap-2">
+                <button id="meal-planner-tab-btn" class="tab-btn active flex-grow py-2.5 px-4 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center space-x-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18.7 3.3a2.1 2.1 0 0 1 3 3L12 16l-4 1 1-4Z"/></svg>
                     <span>Meal Planner</span>
                 </button>
-                <button id="festival-assistant-tab-btn" class="tab-btn w-full py-2.5 px-4 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center space-x-2">
+                <button id="festival-assistant-tab-btn" class="tab-btn flex-grow py-2.5 px-4 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center space-x-2">
                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-1 0v-1a.5.5 0 0 1 .5-.5Z"/><path d="M12 20.5a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-1 0v-1a.5.5 0 0 1 .5-.5Z"/><path d="M5.5 5.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5Z"/><path d="M16.5 5.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5Z"/><path d="M5.5 18.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5Z"/><path d="M16.5 18.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5Z"/><path d="M3 12a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1A.5.5 0 0 1 3 12Z"/><path d="M20 12a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5Z"/><path d="m15.5 8.5-1 1-4-4 1-1a2.12 2.12 0 0 1 3 0l1 1a2.12 2.12 0 0 1 0 3Z"/><path d="M8.5 15.5l1-1 4 4-1 1a2.12 2.12 0 0 1-3 0l-1-1a2.12 2.12 0 0 1 0-3Z"/></svg>
                     <span>Festival Assistant</span>
                 </button>
-                <button id="quick-mode-tab-btn" class="tab-btn w-full py-2.5 px-4 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center space-x-2">
+                <button id="quick-mode-tab-btn" class="tab-btn flex-grow py-2.5 px-4 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center space-x-2">
                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12.6 3.2-5.7 6c-2.3 2.4-2.3 6.1 0 8.5l5.7 6"/><path d="M5.4 3.2h.1c3.3 0 6 2.7 6 6s-2.7 6-6 6h-.1"/></svg>
                     <span>Quick Mode</span>
                 </button>
-                 <button id="history-tab-btn" class="tab-btn w-full py-2.5 px-4 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center space-x-2">
+                 <button id="history-tab-btn" class="tab-btn flex-grow py-2.5 px-4 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center space-x-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M12 8v4l2 2"/></svg>
                     <span>History</span>
                 </button>
@@ -128,7 +144,7 @@
                              <option>Diwali</option> <option>Holi</option> <option>Eid</option> <option>Navratri</option> <option>Ganesh Chaturthi</option> <option>Pongal</option>
                          </select>
                          <button id="generate-festival-btn" class="generate-btn mt-4 w-full max-w-sm mx-auto text-white font-bold py-3.5 px-4 rounded-lg hover:opacity-90 transition-opacity duration-300 flex items-center justify-center space-x-2">
-                            <span class="btn-text">Generate Festival Plan</span>
+                            <span class="btn-text">Get Festival Guide</span>
                             <div class="loader hidden"></div>
                         </button>
                     </div>
@@ -145,10 +161,12 @@
                 </div>
                 
                 <!-- History Content -->
-                <div id="history-content" class="hidden">
-                    <h3 class="text-2xl font-bold text-gray-800 mb-4 text-center">Your Saved Plans</h3>
-                    <div id="history-container" class="space-y-4 max-h-96 overflow-y-auto">
-                        <!-- History items will be injected here -->
+                <div id="history-content" class="hidden h-[450px] flex border rounded-lg bg-white">
+                    <div id="history-list" class="w-1/3 border-r overflow-y-auto">
+                        <!-- History list items will be injected here -->
+                    </div>
+                    <div id="history-display" class="w-2/3 p-4 overflow-y-auto">
+                        <p class="text-center text-gray-500">Select a plan from the list to view it.</p>
                     </div>
                 </div>
             </div>
@@ -158,12 +176,28 @@
              <div id="plan-output-container" class="mt-6 hidden">
                 <div class="flex justify-between items-center mb-2">
                     <h4 class="font-semibold text-lg text-gray-700">Your AI Generated Plan:</h4>
-                    <button id="share-btn" class="hidden bg-green-500 text-white font-semibold py-1 px-3 rounded-lg hover:bg-green-600 transition duration-300 text-sm flex items-center space-x-1.5">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12c0 1.821.487 3.53 1.338 5L2.5 21.5l4.5-1.338A9.92 9.92 0 0 0 12 22z"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/></svg>
-                        <span>Share</span>
-                    </button>
+                    <div class="flex space-x-2">
+                        <button class="share-whatsapp-btn bg-green-500 text-white font-semibold py-1 px-3 rounded-lg hover:bg-green-600 transition duration-300 text-sm flex items-center space-x-1.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12a10 10 0 1 0-20 0 10 10 0 0 0 10 10z"/><path d="m10 10-2 2 2 2"/><path d="m14 14 2-2-2-2"/></svg>
+                            <span>WhatsApp</span>
+                        </button>
+                         <button class="share-email-btn bg-blue-500 text-white font-semibold py-1 px-3 rounded-lg hover:bg-blue-600 transition duration-300 text-sm flex items-center space-x-1.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                            <span>Email</span>
+                        </button>
+                    </div>
                 </div>
                 <div id="plan-output" class="plan-output"></div>
+                 <div class="flex space-x-2 justify-end mt-4">
+                    <button class="share-whatsapp-btn bg-green-500 text-white font-semibold py-1 px-3 rounded-lg hover:bg-green-600 transition duration-300 text-sm flex items-center space-x-1.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12a10 10 0 1 0-20 0 10 10 0 0 0 10 10z"/><path d="m10 10-2 2 2 2"/><path d="m14 14 2-2-2-2"/></svg>
+                        <span>WhatsApp</span>
+                    </button>
+                     <button class="share-email-btn bg-blue-500 text-white font-semibold py-1 px-3 rounded-lg hover:bg-blue-600 transition duration-300 text-sm flex items-center space-x-1.5">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                        <span>Email</span>
+                    </button>
+                </div>
             </div>
 
             <!-- Footer / Premium Packs -->
@@ -292,8 +326,9 @@
         const loginModalOverlay = document.getElementById('login-modal-overlay');
         const closeLoginModalBtn = document.getElementById('close-login-modal');
         const unlockUsesCard = document.getElementById('unlock-uses-card');
-        const shareBtn = document.getElementById('share-btn');
         const historyContainer = document.getElementById('history-container');
+        const historyList = document.getElementById('history-list');
+        const historyDisplay = document.getElementById('history-display');
         
         // Action Buttons
         const generatePlanBtn = document.getElementById('generate-plan-btn');
@@ -354,28 +389,43 @@
 
         async function loadHistory(userId) {
             if (!userId) return;
-            historyContainer.innerHTML = '<p class="text-center text-gray-500">Loading history...</p>';
+            historyList.innerHTML = '<p class="p-3 text-center text-gray-500">Loading...</p>';
+            historyDisplay.innerHTML = '<p class="text-center text-gray-500">Select a plan from the list to view it.</p>';
+            
             const historyColRef = collection(db, "users", userId, "savedPlans");
             const q = query(historyColRef, orderBy("createdAt", "desc"));
             const querySnapshot = await getDocs(q);
             
             if (querySnapshot.empty) {
-                historyContainer.innerHTML = '<p class="text-center text-gray-500">No saved plans found.</p>';
+                historyList.innerHTML = '<p class="p-3 text-center text-gray-500">No saved plans.</p>';
                 return;
             }
 
-            historyContainer.innerHTML = '';
+            historyList.innerHTML = '';
+            const historyItems = [];
             querySnapshot.forEach((doc) => {
-                const data = doc.data();
-                const planDate = data.createdAt.toDate().toLocaleString();
-                const card = document.createElement('div');
-                card.className = 'p-4 bg-gray-50 rounded-lg border';
-                card.innerHTML = `
-                    <p class="text-sm font-semibold text-gray-800">${data.prompt}</p>
-                    <p class="text-xs text-gray-500 mb-2">${planDate}</p>
-                    <div class="text-sm text-gray-700 whitespace-pre-wrap">${data.plan}</div>
+                historyItems.push({ id: doc.id, ...doc.data() });
+            });
+
+            historyItems.forEach((item, index) => {
+                const itemEl = document.createElement('div');
+                itemEl.className = 'history-item';
+                itemEl.innerHTML = `
+                    <p class="font-semibold text-sm truncate">${item.prompt}</p>
+                    <p class="text-xs text-gray-500">${item.createdAt.toDate().toLocaleString()}</p>
                 `;
-                historyContainer.appendChild(card);
+                itemEl.addEventListener('click', () => {
+                    historyList.querySelectorAll('.history-item').forEach(el => el.classList.remove('active'));
+                    itemEl.classList.add('active');
+                    historyDisplay.innerHTML = `
+                        <h4 class="font-bold text-lg mb-2">${item.prompt}</h4>
+                        <div class="text-sm">${simpleMarkdownToHtml(item.plan)}</div>
+                    `;
+                });
+                historyList.appendChild(itemEl);
+                if (index === 0) {
+                    itemEl.click();
+                }
             });
         }
         
@@ -399,7 +449,7 @@
                     btn.classList.remove('bg-gray-400', 'cursor-not-allowed');
                 });
                 generatePlanBtn.querySelector('.btn-text').textContent = "Generate Weekly Meal Plan";
-                generateFestivalBtn.querySelector('.btn-text').textContent = "Generate Festival Plan";
+                generateFestivalBtn.querySelector('.btn-text').textContent = "Get Festival Guide";
                 generateQuickBtn.querySelector('.btn-text').textContent = "Generate Quick Plan";
             }
         }
@@ -518,9 +568,9 @@
             buttonText.textContent = 'Generating...';
             loader.classList.remove('hidden');
             callingButton.disabled = true;
-            planOutput.innerHTML = '🤖 Generating your AI-powered plan, please wait...';
+            planOutput.innerHTML = '<div class="flex justify-center items-center h-24"><div class="loader"></div></div>';
             planOutputContainer.classList.remove('hidden');
-            shareBtn.classList.add('hidden');
+            document.querySelectorAll('.share-whatsapp-btn, .share-email-btn').forEach(btn => btn.parentElement.classList.add('hidden'));
 
             try {
                 const generatePlanAICallable = httpsCallable(functions, 'generatePlanAI');
@@ -528,7 +578,7 @@
                 
                 const generatedText = result.data.plan;
                 planOutput.innerHTML = simpleMarkdownToHtml(generatedText);
-                shareBtn.classList.remove('hidden');
+                document.querySelectorAll('.share-whatsapp-btn, .share-email-btn').forEach(btn => btn.parentElement.classList.remove('hidden'));
 
                 await savePlanToHistory(auth.currentUser.uid, prompt, generatedText);
 
@@ -536,8 +586,12 @@
                     updateUserUsageCount(auth.currentUser.uid);
                 }
             } catch (error) {
-                console.error("Cloud Function call failed:", error);
-                planOutput.textContent = "An error occurred while generating your plan. Please try again.";
+                console.error("Cloud Function call failed with error:", error);
+                let errorMessage = "An error occurred while generating your plan. Please try again.";
+                if (error.code && error.message) {
+                    errorMessage = `Error: ${error.message}`;
+                }
+                planOutput.textContent = errorMessage;
             } finally {
                 buttonText.textContent = originalButtonText;
                 loader.classList.add('hidden');
@@ -547,20 +601,22 @@
 
         function simpleMarkdownToHtml(text) {
             let html = text
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')      // Bold
-                .replace(/### (.*?)\n/g, '<h4 class="font-bold mt-3 mb-1">$1</h4>') // H3 -> H4
-                .replace(/## (.*?)\n/g, '<h3 class="font-bold text-lg mt-4 mb-2">$1</h3>') // H2 -> H3
-                .replace(/# (.*?)\n/g, '<h2 class="font-bold text-xl mt-4 mb-2">$1</h2>'); // H1 -> H2
+                .replace(/^### (.*?$)/gim, '<h4 class="font-bold mt-3 mb-1">$1</h4>')
+                .replace(/^## (.*?$)/gim, '<h3 class="font-bold text-lg mt-4 mb-2">$1</h3>')
+                .replace(/^# (.*?$)/gim, '<h2 class="font-bold text-xl mt-4 mb-2">$1</h2>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/---/g, '<hr class="my-4 border-gray-300">');
             
             const lines = html.split('\n');
             let inList = false;
             html = lines.map(line => {
-                if (line.startsWith('* ') || line.startsWith('- ')) {
+                if (line.trim().startsWith('* ') || line.trim().startsWith('- ')) {
+                    const lineContent = line.trim().substring(2);
                     if (!inList) {
                         inList = true;
-                        return '<ul><li>' + line.substring(2) + '</li>';
+                        return '<ul><li>' + lineContent + '</li>';
                     }
-                    return '<li>' + line.substring(2) + '</li>';
+                    return '<li>' + lineContent + '</li>';
                 }
                 if (inList) {
                     inList = false;
@@ -655,11 +711,23 @@
             generatePlan('a quick and random meal plan for today', false, e.currentTarget);
         });
 
-        shareBtn.addEventListener('click', () => {
-            const planText = planOutput.innerText; // Use innerText to get clean text
-            const shareText = `Check out this AI Meal Plan generated for me on ${new Date().toLocaleString()}:\n\n${planText}`;
-            const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
-            window.open(whatsappUrl, '_blank');
+        document.querySelectorAll('.share-whatsapp-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const planText = planOutput.innerText; 
+                const shareText = `Check out this AI Plan generated for me on ${new Date().toLocaleString()}:\n\n${planText}`;
+                const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
+                window.open(whatsappUrl, '_blank');
+            });
+        });
+
+        document.querySelectorAll('.share-email-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const planText = planOutput.innerText;
+                const subject = "My AI Generated Meal Plan";
+                const body = `Check out this AI Plan generated for me on ${new Date().toLocaleString()}:\n\n${planText}`;
+                const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                window.location.href = mailtoUrl;
+            });
         });
 
         document.querySelectorAll('.buy-premium-btn').forEach(button => {
