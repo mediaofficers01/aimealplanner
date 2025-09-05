@@ -236,6 +236,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, Timestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-functions.js";
         
         // --- Firebase Configuration ---
         const firebaseConfig = {
@@ -250,6 +251,7 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const functions = getFunctions(app, 'us-central1'); // Ensure region matches deployment
 
         // --- UI Elements ---
         const otpSection = document.getElementById('otp-section');
@@ -429,7 +431,7 @@
             form.submit();
         }
 
-        // --- Gemini API Logic ---
+        // --- AI Logic (Client-side) ---
         async function generatePlan(prompt, isPremium = false, callingButton) {
             if (!auth.currentUser) {
                 loginModalOverlay.classList.remove('hidden');
@@ -456,40 +458,19 @@
             planOutput.textContent = '🤖 Generating your AI-powered plan, please wait...';
             planOutputContainer.classList.remove('hidden');
 
-            const systemPrompt = "You are an expert meal planner for Indian families. Create a structured, easy-to-read meal plan based on the user's request. Format the output clearly with headings for each day (e.g., **Day 1**, **Day 2**) and sub-headings for meals (e.g., - Breakfast:, - Lunch:, - Dinner:).";
-            const userQuery = `Generate a meal plan based on these details: ${prompt}`;
-            const apiKey = ""; 
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-
             try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: userQuery }] }],
-                        systemInstruction: { parts: [{ text: systemPrompt }] },
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`API Error: ${response.statusText}`);
-                }
-
-                const result = await response.json();
-                const generatedText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                const generatePlanAICallable = httpsCallable(functions, 'generatePlanAI');
+                const result = await generatePlanAICallable({ prompt: prompt });
                 
-                if (generatedText) {
-                    planOutput.textContent = generatedText;
-                    if (!isPremium) {
-                        updateUserUsageCount(auth.currentUser.uid);
-                    }
-                } else {
-                     planOutput.textContent = "Sorry, the AI could not generate a plan at this time. Please try again.";
-                }
+                const generatedText = result.data.plan;
+                planOutput.textContent = generatedText;
 
+                if (!isPremium) {
+                    updateUserUsageCount(auth.currentUser.uid);
+                }
             } catch (error) {
-                console.error("Gemini API call failed:", error);
-                planOutput.textContent = "An error occurred while generating your plan. Please check your connection and try again.";
+                console.error("Cloud Function call failed:", error);
+                planOutput.textContent = "An error occurred while generating your plan. Please try again.";
             } finally {
                 // --- Hide Loading State ---
                 buttonText.textContent = originalButtonText;
