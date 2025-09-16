@@ -21,6 +21,14 @@
         .plan-output-content ul { list-style-type: disc; padding-left: 1.5rem; }
         .plan-output-content li { margin-bottom: 0.25rem; }
         .plan-output-content hr { margin-top: 1rem; margin-bottom: 1rem; border-color: #d1d5db; }
+        .plan-output-content a { color: #4f46e5; text-decoration: underline; }
+        .plan-output-content iframe {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            border-radius: 0.5rem;
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
 
 
         #close-login-modal {
@@ -126,15 +134,16 @@
                 <!-- Meal Planner Content -->
                 <div id="meal-planner-content">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input id="family-size" type="number" placeholder="Family Size (e.g., 4)" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" required min="1">
+                        <input id="family-size" type="number" placeholder="Family Size (e.g., 4)" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" value="4" required min="1">
+                        <input id="plan-days" type="number" placeholder="Number of Days (e.g., 7)" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" value="7" min="1" max="14">
                         <select id="diet-type" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
                             <option>Veg</option> <option>Non-Veg</option>
                         </select>
-                        <select id="cuisine-type" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
-                            <option>North Indian (Punjabi)</option> <option>South Indian</option> <option>Gujarati</option> <option>Bengali</option>
-                        </select>
                          <select id="allergies" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
                             <option>None (Allergies)</option> <option>Nut Allergy</option> <option>Lactose Intolerance</option> <option>Gluten-Free</option>
+                        </select>
+                        <select id="cuisine-type" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 md:col-span-2">
+                            <option>North Indian (Punjabi)</option> <option>South Indian</option> <option>Gujarati</option> <option>Bengali</option>
                         </select>
                         <select id="language" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 md:col-span-2">
                             <option>English</option> <option>Hinglish</option>
@@ -714,12 +723,13 @@
             let details = [];
             inputs.forEach(input => {
                 if (input.id === 'family-size') details.push(`for a family of ${input.value} people`);
+                else if (input.id === 'plan-days') details.push(`for ${input.value} days`);
                 else if (input.id === 'diet-type') details.push(`with a ${input.value} diet`);
                 else if (input.id === 'cuisine-type') details.push(`featuring ${input.value} cuisine`);
                 else if (input.id === 'allergies' && input.value !== 'None (Allergies)') details.push(`that is safe for ${input.value}`);
                 else if (input.id === 'language') details.push(`in ${input.value}`);
             });
-            generatePlan(`Generate a weekly meal plan ${details.join(', ')}`, false, e.currentTarget);
+            generatePlan(`Generate a meal plan ${details.join(', ')}`, false, e.currentTarget);
         });
 
         generateFestivalBtn.addEventListener('click', (e) => {
@@ -748,11 +758,14 @@
                 let planText = decodeURIComponent(emailBtn.dataset.planText);
                 let promptText = decodeURIComponent(emailBtn.dataset.prompt);
                 const subject = promptText;
-                const body = `The meal plan has been copied to your clipboard. Please paste it here.\n\nCheck out this AI Plan generated for me on ${new Date().toLocaleString()}:\n\n`;
+                const body = `The full meal plan has been copied to your clipboard. Please paste it here to send.\n\nCheck out this AI Plan generated for me on ${new Date().toLocaleString()}:\n\n`;
                 
                 // Copy to clipboard
                 navigator.clipboard.writeText(planText).then(() => {
                     paymentStatus.textContent = "Plan copied to clipboard!";
+                    setTimeout(() => paymentStatus.textContent = '', 2000);
+                }, () => {
+                     paymentStatus.textContent = "Failed to copy plan.";
                     setTimeout(() => paymentStatus.textContent = '', 2000);
                 });
 
