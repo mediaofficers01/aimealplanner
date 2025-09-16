@@ -461,6 +461,9 @@
         
         // --- Authentication Logic ---
         function setupRecaptcha() {
+            if (window.recaptchaVerifier) {
+                window.recaptchaVerifier.clear();
+            }
             window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { 'size': 'invisible', 'callback': () => {} });
         }
 
@@ -494,7 +497,6 @@
                 loginContainer.innerHTML = `<div class="text-center p-8"><svg class="mx-auto h-12 w-12 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><h2 class="mt-4 text-2xl font-bold text-gray-800">Login Successful!</h2></div>`;
                 setTimeout(() => {
                     loginModalOverlay.classList.add('hidden');
-                    resetLoginForm();
                 }, 2000);
             } catch (error) {
                 loginContainer.querySelector('#auth-status').textContent = `Error: Invalid OTP or session expired.`;
@@ -525,6 +527,7 @@
                     <p id="auth-status" class="text-sm text-center text-red-500 h-4"></p>
                 </div>
             `;
+            setupRecaptcha();
             loginContainer.querySelector('#send-otp-btn').addEventListener('click', sendOtp);
             loginContainer.querySelector('#verify-otp-btn').addEventListener('click', verifyOtp);
         }
@@ -715,14 +718,14 @@
                     button.classList.add('hidden');
                 });
                 updateUIForUsage();
+                resetLoginForm();
             }
         });
         
         window.onload = () => {
-            setupRecaptcha();
             resetLoginForm();
         };
-
+        
         document.body.addEventListener('click', (e) => {
             const whatsappBtn = e.target.closest('.share-whatsapp-btn');
             const emailBtn = e.target.closest('.share-email-btn');
@@ -807,12 +810,20 @@
             button.addEventListener('click', (e) => handlePayment(e.target.dataset.amount, e.target.dataset.product));
         });
 
-        closeLoginModalBtn.addEventListener('click', () => loginModalOverlay.classList.add('hidden'));
+        closeLoginModalBtn.addEventListener('click', () => {
+            loginModalOverlay.classList.add('hidden');
+            resetLoginForm();
+        });
         loginModalOverlay.addEventListener('click', (e) => {
-            if (e.target === loginModalOverlay) loginModalOverlay.classList.add('hidden');
+            if (e.target === loginModalOverlay) {
+                 loginModalOverlay.classList.add('hidden');
+                 resetLoginForm();
+            }
         });
 
         tabs.forEach(tab => tab.addEventListener('click', handleTabClick));
+        headerLoginBtn.addEventListener('click', () => loginModalOverlay.classList.remove('hidden'));
     </script>
 </body>
 </html>
+
