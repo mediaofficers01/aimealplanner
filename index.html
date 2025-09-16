@@ -13,20 +13,14 @@
             background-color: #f3e8ff; /* Fallback */
             background-image: linear-gradient(135deg, #f5f3ff 0%, #dee2ff 100%);
         }
-        .plan-output {
+        .plan-output-content {
             white-space: pre-wrap;
-            background-color: #f9fafb;
-            border: 1px solid #e5e7eb;
-            border-radius: 0.5rem;
-            padding: 1rem;
-            text-align: left;
-            min-height: 100px;
         }
-        .plan-output h4 { font-size: 1.125rem; font-weight: 700; margin-top: 0.75rem; margin-bottom: 0.25rem; }
-        .plan-output strong { font-weight: 600; }
-        .plan-output ul { list-style-type: disc; padding-left: 1.5rem; }
-        .plan-output li { margin-bottom: 0.25rem; }
-        .plan-output hr { margin-top: 1rem; margin-bottom: 1rem; border-color: #d1d5db; }
+        .plan-output-content h4 { font-size: 1.125rem; font-weight: 700; margin-top: 0.75rem; margin-bottom: 0.25rem; }
+        .plan-output-content strong { font-weight: 600; }
+        .plan-output-content ul { list-style-type: disc; padding-left: 1.5rem; }
+        .plan-output-content li { margin-bottom: 0.25rem; }
+        .plan-output-content hr { margin-top: 1rem; margin-bottom: 1rem; border-color: #d1d5db; }
 
 
         #close-login-modal {
@@ -91,7 +85,17 @@
     <div class="w-full max-w-4xl space-y-8">
         <!-- Header -->
         <div class="text-center">
-            <h1 class="text-4xl md:text-5xl font-extrabold text-gray-800">AI Meal & Festival Planner</h1>
+            <div class="flex justify-between items-center">
+                <div></div> <!-- Spacer -->
+                <h1 class="text-4xl md:text-5xl font-extrabold text-gray-800">AI Meal & Festival Planner</h1>
+                <div id="auth-header-container">
+                    <button id="header-login-btn" class="bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-700 transition duration-300">Login</button>
+                    <div id="user-status-container" class="hidden text-right">
+                         <p id="user-status" class="text-sm text-gray-600"></p>
+                         <button id="logout-btn" class="text-xs text-indigo-600 font-semibold">Logout</button>
+                    </div>
+                </div>
+            </div>
             <p class="text-lg text-gray-600 mt-2">Your all-in-one assistant for Indian families.</p>
         </div>
 
@@ -232,12 +236,8 @@
                     </div>
                 </div>
             </div>
-
-            <div class="text-center pt-6">
-                <p id="user-status" class="text-sm text-gray-600">Logged in as Guest</p>
-                <button id="logout-btn" class="hidden text-sm text-indigo-600 font-semibold py-2 px-4">Logout</button>
-            </div>
-             <p id="payment-status" class="text-sm text-center text-red-500 h-4"></p>
+            
+             <p id="payment-status" class="text-sm text-center text-red-500 h-4 mt-4"></p>
         </div>
     </div>
 
@@ -298,6 +298,8 @@
         const sendOtpBtn = document.getElementById('send-otp-btn');
         const verifyOtpBtn = document.getElementById('verify-otp-btn');
         const logoutBtn = document.getElementById('logout-btn');
+        const headerLoginBtn = document.getElementById('header-login-btn');
+        const userStatusContainer = document.getElementById('user-status-container');
         const phoneNumberInput = document.getElementById('phone-number');
         const otpInput = document.getElementById('otp');
         const userStatus = document.getElementById('user-status');
@@ -673,15 +675,15 @@
         // --- Event Listeners and State Management ---
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                loginModalOverlay.classList.add('hidden');
+                userStatusContainer.classList.remove('hidden');
+                headerLoginBtn.classList.add('hidden');
                 userStatus.textContent = `Logged in as ${user.phoneNumber}`;
-                logoutBtn.classList.remove('hidden');
                 getUserData(user.uid).then(() => {
                     handlePostPayment(user.uid);
                 });
             } else {
-                userStatus.textContent = 'Logged in as Guest';
-                logoutBtn.classList.add('hidden');
+                userStatusContainer.classList.add('hidden');
+                headerLoginBtn.classList.remove('hidden');
                 usageCountInfo.textContent = `Log in to track your uses.`;
                 userPurchases = {};
                 document.querySelectorAll('.buy-premium-btn').forEach(button => {
@@ -698,6 +700,7 @@
         sendOtpBtn.addEventListener('click', sendOtp);
         verifyOtpBtn.addEventListener('click', verifyOtp);
         logoutBtn.addEventListener('click', () => signOut(auth));
+        headerLoginBtn.addEventListener('click', () => loginModalOverlay.classList.remove('hidden'));
         
         generatePlanBtn.addEventListener('click', (e) => {
             const familySizeInput = document.getElementById('family-size');
@@ -708,9 +711,15 @@
             }
             paymentStatus.textContent = ""; 
             const inputs = mealPlannerContent.querySelectorAll('input, select');
-            let details = ["Meal Plan"];
-            inputs.forEach(input => details.push(input.value));
-            generatePlan(`a ${details.join(', ')} meal plan`, false, e.currentTarget);
+            let details = [];
+            inputs.forEach(input => {
+                if (input.id === 'family-size') details.push(`for a family of ${input.value} people`);
+                else if (input.id === 'diet-type') details.push(`with a ${input.value} diet`);
+                else if (input.id === 'cuisine-type') details.push(`featuring ${input.value} cuisine`);
+                else if (input.id === 'allergies' && input.value !== 'None (Allergies)') details.push(`that is safe for ${input.value}`);
+                else if (input.id === 'language') details.push(`in ${input.value}`);
+            });
+            generatePlan(`Generate a weekly meal plan ${details.join(', ')}`, false, e.currentTarget);
         });
 
         generateFestivalBtn.addEventListener('click', (e) => {
@@ -739,7 +748,14 @@
                 let planText = decodeURIComponent(emailBtn.dataset.planText);
                 let promptText = decodeURIComponent(emailBtn.dataset.prompt);
                 const subject = promptText;
-                const body = `Check out this AI Plan generated for me on ${new Date().toLocaleString()}:\n\n${planText}`;
+                const body = `The meal plan has been copied to your clipboard. Please paste it here.\n\nCheck out this AI Plan generated for me on ${new Date().toLocaleString()}:\n\n`;
+                
+                // Copy to clipboard
+                navigator.clipboard.writeText(planText).then(() => {
+                    paymentStatus.textContent = "Plan copied to clipboard!";
+                    setTimeout(() => paymentStatus.textContent = '', 2000);
+                });
+
                 const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
                 window.location.href = mailtoUrl;
             }
