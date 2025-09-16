@@ -128,7 +128,18 @@
                 <div id="meal-planner-content">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <input id="family-size" type="number" placeholder="Family Size (e.g., 4)" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" value="4" required min="1">
-                        <input id="plan-days" type="number" placeholder="Number of Days (e.g., 7)" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" value="7" min="1" max="10">
+                        <select id="plan-days" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+                            <option value="1">1 Day</option>
+                            <option value="2">2 Days</option>
+                            <option value="3">3 Days</option>
+                            <option value="4">4 Days</option>
+                            <option value="5">5 Days</option>
+                            <option value="6">6 Days</option>
+                            <option value="7" selected>7 Days</option>
+                            <option value="8">8 Days</option>
+                            <option value="9">9 Days</option>
+                            <option value="10">10 Days</option>
+                        </select>
                         <select id="diet-type" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
                             <option>Veg</option> <option>Non-Veg</option>
                         </select>
@@ -143,7 +154,7 @@
                         </select>
                     </div>
                     <button id="generate-plan-btn" class="generate-btn mt-6 w-full text-white font-bold py-3.5 px-4 rounded-lg hover:opacity-90 transition-opacity duration-300 flex items-center justify-center space-x-2">
-                        <span class="btn-text">Generate Weekly Meal Plan</span>
+                        <span class="btn-text">Generate Meal Plan</span>
                         <div class="loader hidden"></div>
                     </button>
                 </div>
@@ -425,7 +436,7 @@
                     btn.classList.add('generate-btn');
                     btn.classList.remove('bg-gray-400', 'cursor-not-allowed');
                 });
-                generatePlanBtn.querySelector('.btn-text').textContent = "Generate Weekly Meal Plan";
+                generatePlanBtn.querySelector('.btn-text').textContent = "Generate Meal Plan";
                 generateFestivalBtn.querySelector('.btn-text').textContent = "Get Festival Guide";
                 generateQuickBtn.querySelector('.btn-text').textContent = "Generate Quick Plan";
             }
@@ -598,7 +609,7 @@
                 planOutput.innerHTML = `
                     <div class="flex flex-wrap justify-between items-center gap-2 mb-2">
                         <h4 class="font-semibold text-lg text-gray-700">Your AI Generated Plan:</h4>
-                        <div class="share-buttons flex space-x-2">
+                        <div class="share-buttons flex flex-wrap gap-2">
                            <button class="share-whatsapp-btn bg-green-500 text-white font-semibold py-1 px-3 rounded-lg hover:bg-green-600 text-sm flex items-center space-x-1.5" data-plan-text="${encodeURIComponent(generatedText)}">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12a10 10 0 1 0-20 0 10 10 0 0 0 10 10z"/><path d="m10 10-2 2 2 2"/><path d="m14 14 2-2-2-2"/></svg>
                                 <span>WhatsApp</span>
@@ -638,6 +649,9 @@
         function simpleMarkdownToHtml(text) {
             let html = text
                 .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" class="text-indigo-600 hover:underline">$1</a>')
+                .replace(/^### (.*?$)/gim, '<h4 class="font-bold mt-3 mb-1">$1</h4>')
+                .replace(/^## (.*?$)/gim, '<h3 class="font-bold text-lg mt-4 mb-2">$1</h3>')
+                .replace(/^# (.*?$)/gim, '<h2 class="font-bold text-xl mt-4 mb-2">$1</h2>')
                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                 .replace(/---/g, '<hr class="my-4 border-gray-300">');
             
