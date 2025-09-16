@@ -22,13 +22,6 @@
         .plan-output-content li { margin-bottom: 0.25rem; }
         .plan-output-content hr { margin-top: 1rem; margin-bottom: 1rem; border-color: #d1d5db; }
         .plan-output-content a { color: #4f46e5; text-decoration: underline; }
-        .plan-output-content iframe {
-            width: 100%;
-            aspect-ratio: 16 / 9;
-            border-radius: 0.5rem;
-            margin-top: 0.5rem;
-            margin-bottom: 0.5rem;
-        }
 
 
         #close-login-modal {
@@ -254,25 +247,8 @@
     <div id="login-modal-overlay" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center hidden z-50 p-4">
         <div id="login-modal" class="relative bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
             <button id="close-login-modal" class="absolute top-2 right-4 text-gray-500 hover:text-gray-800">&times;</button>
-            <div id="login-container" class="w-full">
-                <div class="text-center">
-                    <h1 class="text-2xl font-bold text-gray-800">Login Required</h1>
-                    <p class="text-gray-500">Please verify your phone number to continue.</p>
-                </div>
-                <div class="space-y-4 mt-6">
-                    <div>
-                        <label for="phone-number" class="text-sm font-medium text-gray-700">Phone Number</label>
-                        <input type="tel" id="phone-number" class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="+91 XXXXX XXXXX">
-                    </div>
-                    <button id="send-otp-btn" class="w-full bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-700 transition duration-300">Send OTP</button>
-                    <div id="recaptcha-container"></div>
-                    <div id="otp-section" class="hidden space-y-2">
-                        <label for="otp" class="text-sm font-medium text-gray-700">Enter OTP</label>
-                        <input type="text" id="otp" class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="6-digit code">
-                        <button id="verify-otp-btn" class="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 transition duration-300">Verify OTP</button>
-                    </div>
-                    <p id="auth-status" class="text-sm text-center text-red-500 h-4"></p>
-                </div>
+            <div id="login-container">
+                <!-- Login form will be dynamically inserted here -->
             </div>
         </div>
     </div>
@@ -303,22 +279,17 @@
         const functions = getFunctions(app, 'us-central1'); 
 
         // --- UI Elements ---
-        const otpSection = document.getElementById('otp-section');
-        const sendOtpBtn = document.getElementById('send-otp-btn');
-        const verifyOtpBtn = document.getElementById('verify-otp-btn');
         const logoutBtn = document.getElementById('logout-btn');
         const headerLoginBtn = document.getElementById('header-login-btn');
         const userStatusContainer = document.getElementById('user-status-container');
-        const phoneNumberInput = document.getElementById('phone-number');
-        const otpInput = document.getElementById('otp');
         const userStatus = document.getElementById('user-status');
-        const authStatus = document.getElementById('auth-status');
         const paymentStatus = document.getElementById('payment-status');
         const usageCountInfo = document.getElementById('usage-count-info');
         const planOutputContainer = document.getElementById('plan-output-container');
         const planOutput = document.getElementById('plan-output');
         const loginModalOverlay = document.getElementById('login-modal-overlay');
         const closeLoginModalBtn = document.getElementById('close-login-modal');
+        const loginContainer = document.getElementById('login-container');
         const unlockUsesCard = document.getElementById('unlock-uses-card');
         const historyContainer = document.getElementById('history-container');
         const historyList = document.getElementById('history-list');
@@ -494,31 +465,68 @@
         }
 
         async function sendOtp() {
-            const phoneNumber = phoneNumberInput.value;
+            const phoneNumber = loginContainer.querySelector('#phone-number').value;
             if (!/^\+[1-9]\d{1,14}$/.test(phoneNumber)) {
-                authStatus.textContent = 'Please enter a valid phone number with country code.'; return;
+                loginContainer.querySelector('#auth-status').textContent = 'Please enter a valid phone number with country code.'; return;
             }
-            authStatus.textContent = 'Sending OTP...'; sendOtpBtn.disabled = true;
+            loginContainer.querySelector('#auth-status').textContent = 'Sending OTP...'; 
+            loginContainer.querySelector('#send-otp-btn').disabled = true;
             try {
                 confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier);
-                authStatus.textContent = 'OTP sent successfully!';
-                otpSection.classList.remove('hidden'); sendOtpBtn.textContent = 'Resend OTP';
+                loginContainer.querySelector('#auth-status').textContent = 'OTP sent successfully!';
+                loginContainer.querySelector('#otp-section').classList.remove('hidden'); 
+                loginContainer.querySelector('#send-otp-btn').textContent = 'Resend OTP';
             } catch (error) {
-                authStatus.textContent = `Error: ${error.message}`;
+                loginContainer.querySelector('#auth-status').textContent = `Error: ${error.message}`;
                 window.recaptchaVerifier.render().then(widgetId => grecaptcha.reset(widgetId));
-            } finally { sendOtpBtn.disabled = false; }
+            } finally { 
+                loginContainer.querySelector('#send-otp-btn').disabled = false; 
+            }
         }
 
         async function verifyOtp() {
-            const code = otpInput.value;
-            if (!code || code.length !== 6) { authStatus.textContent = 'Please enter a valid 6-digit OTP.'; return; }
-            authStatus.textContent = 'Verifying...'; verifyOtpBtn.disabled = true;
+            const code = loginContainer.querySelector('#otp').value;
+            if (!code || code.length !== 6) { loginContainer.querySelector('#auth-status').textContent = 'Please enter a valid 6-digit OTP.'; return; }
+            loginContainer.querySelector('#auth-status').textContent = 'Verifying...';
+            loginContainer.querySelector('#verify-otp-btn').disabled = true;
             try {
                 await confirmationResult.confirm(code);
-                authStatus.textContent = 'Login successful!';
+                loginContainer.innerHTML = `<div class="text-center p-8"><svg class="mx-auto h-12 w-12 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><h2 class="mt-4 text-2xl font-bold text-gray-800">Login Successful!</h2></div>`;
+                setTimeout(() => {
+                    loginModalOverlay.classList.add('hidden');
+                    resetLoginForm();
+                }, 2000);
             } catch (error) {
-                authStatus.textContent = `Error: Invalid OTP or session expired.`;
-            } finally { verifyOtpBtn.disabled = false; }
+                loginContainer.querySelector('#auth-status').textContent = `Error: Invalid OTP or session expired.`;
+            } finally { 
+                const verifyBtn = loginContainer.querySelector('#verify-otp-btn');
+                if(verifyBtn) verifyBtn.disabled = false; 
+            }
+        }
+
+        function resetLoginForm() {
+             loginContainer.innerHTML = `
+                <div class="text-center">
+                    <h1 class="text-2xl font-bold text-gray-800">Login Required</h1>
+                    <p class="text-gray-500">Please verify your phone number to continue.</p>
+                </div>
+                <div class="space-y-4 mt-6">
+                    <div>
+                        <label for="phone-number" class="text-sm font-medium text-gray-700">Phone Number</label>
+                        <input type="tel" id="phone-number" class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="+91 XXXXX XXXXX">
+                    </div>
+                    <button id="send-otp-btn" class="w-full bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-700">Send OTP</button>
+                    <div id="recaptcha-container"></div>
+                    <div id="otp-section" class="hidden space-y-2">
+                        <label for="otp" class="text-sm font-medium text-gray-700">Enter OTP</label>
+                        <input type="text" id="otp" class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="6-digit code">
+                        <button id="verify-otp-btn" class="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700">Verify OTP</button>
+                    </div>
+                    <p id="auth-status" class="text-sm text-center text-red-500 h-4"></p>
+                </div>
+            `;
+            loginContainer.querySelector('#send-otp-btn').addEventListener('click', sendOtp);
+            loginContainer.querySelector('#verify-otp-btn').addEventListener('click', verifyOtp);
         }
         
         // --- PayUmoney Integration ---
@@ -596,6 +604,10 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
                                 <span>Email</span>
                             </button>
+                             <button class="copy-plan-btn bg-gray-500 text-white font-semibold py-1 px-3 rounded-lg hover:bg-gray-600 text-sm flex items-center space-x-1.5" data-plan-text="${encodeURIComponent(generatedText)}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                <span>Copy</span>
+                            </button>
                         </div>
                     </div>
                     <div class="plan-output-content">${simpleMarkdownToHtml(generatedText)}</div>
@@ -622,6 +634,7 @@
 
         function simpleMarkdownToHtml(text) {
             let html = text
+                .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" class="text-indigo-600 hover:underline">$1</a>')
                 .replace(/^### (.*?$)/gim, '<h4 class="font-bold mt-3 mb-1">$1</h4>')
                 .replace(/^## (.*?$)/gim, '<h3 class="font-bold text-lg mt-4 mb-2">$1</h3>')
                 .replace(/^# (.*?$)/gim, '<h2 class="font-bold text-xl mt-4 mb-2">$1</h2>')
@@ -686,7 +699,7 @@
             if (user) {
                 userStatusContainer.classList.remove('hidden');
                 headerLoginBtn.classList.add('hidden');
-                userStatus.textContent = `Logged in as ${user.phoneNumber}`;
+                userStatus.textContent = `${user.phoneNumber}`;
                 getUserData(user.uid).then(() => {
                     handlePostPayment(user.uid);
                 });
@@ -705,11 +718,60 @@
             }
         });
         
-        window.onload = setupRecaptcha;
-        sendOtpBtn.addEventListener('click', sendOtp);
-        verifyOtpBtn.addEventListener('click', verifyOtp);
-        logoutBtn.addEventListener('click', () => signOut(auth));
-        headerLoginBtn.addEventListener('click', () => loginModalOverlay.classList.remove('hidden'));
+        window.onload = () => {
+            setupRecaptcha();
+            resetLoginForm();
+        };
+
+        document.body.addEventListener('click', (e) => {
+            const whatsappBtn = e.target.closest('.share-whatsapp-btn');
+            const emailBtn = e.target.closest('.share-email-btn');
+            const premiumGenBtn = e.target.closest('.generate-premium-plan-btn');
+            const copyBtn = e.target.closest('.copy-plan-btn');
+
+            if (whatsappBtn) {
+                let planText = decodeURIComponent(whatsappBtn.dataset.planText);
+                const shareText = `Check out this AI Plan generated for me on ${new Date().toLocaleString()}:\n\n${planText}`;
+                const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
+                window.open(whatsappUrl, '_blank');
+            }
+
+            if (emailBtn) {
+                let planText = decodeURIComponent(emailBtn.dataset.planText);
+                let promptText = decodeURIComponent(emailBtn.dataset.prompt);
+                
+                navigator.clipboard.writeText(planText).then(() => {
+                    paymentStatus.textContent = "Plan copied to clipboard!";
+                    setTimeout(() => paymentStatus.textContent = '', 2000);
+                    
+                    const subject = promptText;
+                    const body = `(The full meal plan has been copied to your clipboard. Please paste it here to send.)\n\nCheck out this AI Plan generated for me on ${new Date().toLocaleString()}:\n\n`;
+                    const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                    window.location.href = mailtoUrl;
+
+                }, () => {
+                     paymentStatus.textContent = "Failed to copy plan automatically.";
+                    setTimeout(() => paymentStatus.textContent = '', 2000);
+                });
+            }
+            
+            if (premiumGenBtn) {
+                const prompt = premiumGenBtn.dataset.productPrompt;
+                if(prompt) {
+                    generatePlan(prompt, true, premiumGenBtn);
+                }
+            }
+             if (copyBtn) {
+                let planText = decodeURIComponent(copyBtn.dataset.planText);
+                navigator.clipboard.writeText(planText).then(() => {
+                    paymentStatus.textContent = "Plan copied to clipboard!";
+                    setTimeout(() => paymentStatus.textContent = '', 2000);
+                }, () => {
+                    paymentStatus.textContent = "Failed to copy plan.";
+                    setTimeout(() => paymentStatus.textContent = '', 2000);
+                });
+            }
+        });
         
         generatePlanBtn.addEventListener('click', (e) => {
             const familySizeInput = document.getElementById('family-size');
@@ -741,46 +803,6 @@
             generatePlan('a quick and random meal plan for today', false, e.currentTarget);
         });
 
-        // Use event delegation for dynamically created buttons
-        document.body.addEventListener('click', (e) => {
-            const whatsappBtn = e.target.closest('.share-whatsapp-btn');
-            const emailBtn = e.target.closest('.share-email-btn');
-            const premiumGenBtn = e.target.closest('.generate-premium-plan-btn');
-
-            if (whatsappBtn) {
-                let planText = decodeURIComponent(whatsappBtn.dataset.planText);
-                const shareText = `Check out this AI Plan generated for me on ${new Date().toLocaleString()}:\n\n${planText}`;
-                const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
-                window.open(whatsappUrl, '_blank');
-            }
-
-            if (emailBtn) {
-                let planText = decodeURIComponent(emailBtn.dataset.planText);
-                let promptText = decodeURIComponent(emailBtn.dataset.prompt);
-                const subject = promptText;
-                const body = `The full meal plan has been copied to your clipboard. Please paste it here to send.\n\nCheck out this AI Plan generated for me on ${new Date().toLocaleString()}:\n\n`;
-                
-                // Copy to clipboard
-                navigator.clipboard.writeText(planText).then(() => {
-                    paymentStatus.textContent = "Plan copied to clipboard!";
-                    setTimeout(() => paymentStatus.textContent = '', 2000);
-                }, () => {
-                     paymentStatus.textContent = "Failed to copy plan.";
-                    setTimeout(() => paymentStatus.textContent = '', 2000);
-                });
-
-                const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-                window.location.href = mailtoUrl;
-            }
-            
-            if (premiumGenBtn) {
-                const prompt = premiumGenBtn.dataset.productPrompt;
-                if(prompt) {
-                    generatePlan(prompt, true, premiumGenBtn);
-                }
-            }
-        });
-
         document.querySelectorAll('.buy-premium-btn').forEach(button => {
             button.addEventListener('click', (e) => handlePayment(e.target.dataset.amount, e.target.dataset.product));
         });
@@ -794,4 +816,3 @@
     </script>
 </body>
 </html>
-
