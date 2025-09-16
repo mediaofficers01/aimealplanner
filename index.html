@@ -128,7 +128,7 @@
                 <div id="meal-planner-content">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <input id="family-size" type="number" placeholder="Family Size (e.g., 4)" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" value="4" required min="1">
-                        <input id="plan-days" type="number" placeholder="Number of Days (e.g., 7)" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" value="7" min="1" max="14">
+                        <input id="plan-days" type="number" placeholder="Number of Days (e.g., 7)" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" value="7" min="1" max="10">
                         <select id="diet-type" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
                             <option>Veg</option> <option>Non-Veg</option>
                         </select>
@@ -638,9 +638,6 @@
         function simpleMarkdownToHtml(text) {
             let html = text
                 .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" class="text-indigo-600 hover:underline">$1</a>')
-                .replace(/^### (.*?$)/gim, '<h4 class="font-bold mt-3 mb-1">$1</h4>')
-                .replace(/^## (.*?$)/gim, '<h3 class="font-bold text-lg mt-4 mb-2">$1</h3>')
-                .replace(/^# (.*?$)/gim, '<h2 class="font-bold text-xl mt-4 mb-2">$1</h2>')
                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                 .replace(/---/g, '<hr class="my-4 border-gray-300">');
             
