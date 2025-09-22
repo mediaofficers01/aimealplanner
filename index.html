@@ -870,7 +870,8 @@
         tabs.forEach(tab => tab.addEventListener('click', handleTabClick));
         headerLoginBtn.addEventListener('click', () => loginModalOverlay.classList.remove('hidden'));
         mobileMenuBtn.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+        logoutBtn.addEventListener('click', () => signOut(auth));
+
     </script>
 </body>
 </html>
-
