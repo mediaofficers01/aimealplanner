@@ -80,45 +80,44 @@
             }
         }
     </style>
-    <!-- Facebook Pixel Code -->
-<script>
-!function(f,b,e,v,n,t,s)
-{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-n.queue=[];t=b.createElement(e);t.async=!0;
-t.src=v;s=b.getElementsByTagName(e)[0];
-s.parentNode.insertBefore(t,s)}(window,document,'script',
-'https://connect.facebook.net/en_US/fbevents.js');
-fbq('init', '605007224115264');
-fbq('track', 'PageView');
-</script>
-<noscript>
-<img height="1" width="1"
-src="https://www.facebook.com/tr?id=605007224115264&ev=PageView
-&noscript=1"/>
-</noscript>
-<!-- End Facebook Pixel Code -->
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
+<body class="flex flex-col items-center min-h-screen p-4">
 
-    <div class="w-full max-w-4xl space-y-8">
-        <!-- Header -->
-        <div class="text-center">
-            <div class="flex justify-between items-center">
-                <div></div> <!-- Spacer -->
-                <h1 class="text-4xl md:text-5xl font-extrabold text-gray-800">AI Meal & Festival Planner</h1>
-                <div id="auth-header-container">
-                    <button id="header-login-btn" class="bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-700 transition duration-300">Login</button>
-                    <div id="user-status-container" class="hidden text-right">
-                         <p id="user-status" class="text-sm text-gray-600"></p>
-                         <button id="logout-btn" class="text-xs text-indigo-600 font-semibold">Logout</button>
-                    </div>
+    <!-- Header -->
+    <header class="w-full max-w-6xl mx-auto bg-white/50 backdrop-blur-lg rounded-xl shadow-md p-4 mb-8">
+        <div class="flex justify-between items-center">
+            <a href="https://sabkaai.com/" target="_blank" rel="noopener noreferrer">
+                <img src="https://sabkaai.com/sabkaailogo.png" alt="SabkaAI.com Logo" class="h-10">
+            </a>
+            <nav class="hidden md:flex items-center space-x-6">
+                <a href="https://sabkaai.com/" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-indigo-600 font-semibold">Home</a>
+                <a href="https://sabkaai.com/#tools" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-indigo-600 font-semibold">Tools</a>
+                <a href="https://sabkaai.com/#about" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-indigo-600 font-semibold">About</a>
+                <a href="https://sabkaai.com/#faq" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-indigo-600 font-semibold">FAQ</a>
+                <a href="https://sabkaai.com/#contact" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-indigo-600 font-semibold">Contact</a>
+            </nav>
+            <div id="auth-header-container" class="flex items-center">
+                <button id="header-login-btn" class="bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-700 transition duration-300">Login</button>
+                <div id="user-status-container" class="hidden text-right">
+                     <p id="user-status" class="text-sm text-gray-600"></p>
+                     <button id="logout-btn" class="text-xs text-indigo-600 font-semibold">Logout</button>
                 </div>
             </div>
-            <p class="text-lg text-gray-600 mt-2">Your all-in-one assistant for Indian families.</p>
+             <button id="mobile-menu-btn" class="md:hidden">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
         </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden mt-4">
+            <a href="https://sabkaai.com/" target="_blank" rel="noopener noreferrer" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100">Home</a>
+            <a href="https://sabkaai.com/#tools" target="_blank" rel="noopener noreferrer" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100">Tools</a>
+            <a href="https://sabkaai.com/#about" target="_blank" rel="noopener noreferrer" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100">About</a>
+            <a href="https://sabkaai.com/#faq" target="_blank" rel="noopener noreferrer" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100">FAQ</a>
+            <a href="https://sabkaai.com/#contact" target="_blank" rel="noopener noreferrer" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100">Contact</a>
+        </div>
+    </header>
 
+    <div class="w-full max-w-4xl space-y-8 flex-grow">
         <!-- Main Content Area -->
         <div class="bg-white/70 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-lg p-4 sm:p-6">
             <!-- Tab Navigation -->
@@ -271,15 +270,22 @@ src="https://www.facebook.com/tr?id=605007224115264&ev=PageView
             
              <p id="payment-status" class="text-sm text-center text-red-500 h-4 mt-4"></p>
         </div>
-
-        <!-- Footer -->
-        <footer class="text-center py-4">
-            <a href="https://sabkaai.com/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-gray-500 hover:text-gray-700 transition-colors duration-300">
-                <span class="text-sm">a tool by</span>
-                <img src="https://sabkaai.com/sabkaailogo.png" alt="SabkaAI.com Logo" class="h-6 ml-2">
-            </a>
-        </footer>
     </div>
+    
+    <!-- Footer -->
+    <footer class="w-full max-w-6xl mx-auto text-center py-6 mt-8">
+        <div class="flex flex-wrap justify-center gap-x-6 gap-y-2 mb-4">
+            <a href="https://sabkaai.com/#home" target="_blank" rel="noopener noreferrer" class="text-sm text-gray-600 hover:text-indigo-600">Home</a>
+            <a href="https://sabkaai.com/#tools" target="_blank" rel="noopener noreferrer" class="text-sm text-gray-600 hover:text-indigo-600">Tools</a>
+            <a href="https://sabkaai.com/#about" target="_blank" rel="noopener noreferrer" class="text-sm text-gray-600 hover:text-indigo-600">About</a>
+            <a href="https://mediaofficers.com/privacy-policy/" target="_blank" rel="noopener noreferrer" class="text-sm text-gray-600 hover:text-indigo-600">Privacy Policy</a>
+            <a href="https://mediaofficers.com/terms-and-conditions/" target="_blank" rel="noopener noreferrer" class="text-sm text-gray-600 hover:text-indigo-600">Terms of Service</a>
+        </div>
+        <a href="https://sabkaai.com/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-gray-500 hover:text-gray-700 transition-colors duration-300">
+            <span class="text-sm">a tool by</span>
+            <img src="https://i.ibb.co/6D4C6d5/sabkaai-logo.png" alt="SabkaAI.com Logo" class="h-6 ml-2">
+        </a>
+    </footer>
 
     <!-- Login Modal -->
     <div id="login-modal-overlay" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center hidden z-50 p-4">
@@ -332,6 +338,8 @@ src="https://www.facebook.com/tr?id=605007224115264&ev=PageView
         const historyContainer = document.getElementById('history-container');
         const historyList = document.getElementById('history-list');
         const historyDisplay = document.getElementById('history-display');
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
         
         // Action Buttons
         const generatePlanBtn = document.getElementById('generate-plan-btn');
@@ -861,6 +869,7 @@ src="https://www.facebook.com/tr?id=605007224115264&ev=PageView
 
         tabs.forEach(tab => tab.addEventListener('click', handleTabClick));
         headerLoginBtn.addEventListener('click', () => loginModalOverlay.classList.remove('hidden'));
+        mobileMenuBtn.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
     </script>
 </body>
 </html>
