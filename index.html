@@ -597,8 +597,13 @@
         
         // --- PayUmoney Integration ---
         function handlePayment(amount, productInfo) {
-            if (!auth.currentUser) { loginModalOverlay.classList.remove('hidden'); return; }
+            if (!auth.currentUser) { 
+                loginModalOverlay.classList.remove('hidden');
+                return; 
+            }
             
+            fbq('track', 'InitiateCheckout');
+
             const payUDetails = { key: "8z5rZQDi", paymentUrl: "https://secure.payu.in/_payment" };
             const currentUser = auth.currentUser;
             const salt = "IsygW4nDGh";
@@ -746,8 +751,10 @@
             const urlParams = new URLSearchParams(window.location.search);
             const status = urlParams.get('status');
             const product = urlParams.get('product');
+            const amount = urlParams.get('amount');
 
             if (status === 'success' && product) {
+                fbq('track', 'Purchase', {value: amount, currency: 'INR'});
                 const decodedProduct = decodeURIComponent(product);
                 await getUserData(userId);
                 paymentStatus.textContent = `Successfully purchased ${decodedProduct}!`;
